@@ -1,4 +1,4 @@
-package com.anjunar.sql.builder;
+package com.anjunar.sql.builder.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

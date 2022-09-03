@@ -1,4 +1,4 @@
-package com.anjunar.sql.builder;
+package com.anjunar.sql.builder.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
