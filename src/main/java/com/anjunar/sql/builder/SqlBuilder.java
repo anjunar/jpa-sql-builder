@@ -3,6 +3,7 @@ package com.anjunar.sql.builder;
 import com.anjunar.sql.builder.joins.JsonJoin;
 import com.anjunar.sql.builder.predicates.*;
 import com.anjunar.sql.builder.aggregators.*;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 public class SqlBuilder {
 
@@ -15,7 +16,7 @@ public class SqlBuilder {
         return new Query<>(result);
     }
 
-    public static <E, U> JsonJoin<E, U> jsonArray(String attribute, String property) {
+    public static <E, U> JsonJoin<E, U> jsonArray(SingularAttribute<E,U> attribute, String property) {
         return new JsonJoin<>(attribute, property);
     }
 

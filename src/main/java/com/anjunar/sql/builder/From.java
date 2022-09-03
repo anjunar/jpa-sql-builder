@@ -6,6 +6,8 @@ import com.anjunar.introspector.bean.BeanProperty;
 import com.anjunar.sql.builder.joins.JsonJoin;
 import com.anjunar.sql.builder.joins.NormalJoin;
 import jakarta.persistence.Table;
+import jakarta.persistence.metamodel.PluralAttribute;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,9 +59,9 @@ public class From<E> extends Selection<E> {
         return join;
     }
 
-    public <U> Join<E, U> join(String attribute, NormalJoin.Type type) {
+    public <U> Join<E, U> join(PluralAttribute<E, ?, U> attribute, NormalJoin.Type type) {
         BeanModel<E> beanModel = BeanIntrospector.create(source);
-        BeanProperty<E, ?> property = beanModel.get(attribute);
+        BeanProperty<E, ?> property = beanModel.get(attribute.getName());
         Class<?> rawType = property.getType().getRawType();
 
         if (Collection.class.isAssignableFrom(rawType)) {
@@ -73,8 +75,8 @@ public class From<E> extends Selection<E> {
         throw new RuntimeException("Not Implemented yet");
     }
 
-    public <X> Path<X> get(String attribute) {
-        return new Path<X>(attribute, (From<X>) this);
+    public <X,Y> Path<Y> get(SingularAttribute<X, Y> attribute) {
+        return new Path<Y>(attribute, (From<Y>) this);
     }
 
     @Override

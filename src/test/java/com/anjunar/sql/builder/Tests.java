@@ -5,11 +5,15 @@ import com.anjunar.sql.builder.joins.JsonJoin;
 import com.anjunar.sql.builder.joins.NormalJoin;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.Metamodel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 import static com.anjunar.sql.builder.SqlBuilder.*;
 
@@ -18,6 +22,10 @@ public class Tests {
     @BeforeAll
     public static void startUp() {
         EntityManagerFactory factory = Persistence.createEntityManagerFactory("test");
+        Metamodel metamodel = factory.getMetamodel();
+        EntityType<Address> entity = metamodel.entity(Address.class);
+        Set<Attribute<? super Address, ?>> attributes = entity.getAttributes();
+        System.out.println(attributes);
     }
 
     @Test
@@ -25,9 +33,9 @@ public class Tests {
         Query<Long> query = query(Long.class);
         From<Address> from = query.from(Address.class);
 
-        query.select(count(from.get(Address_.ID)))
-                .groupBy(from.get(Address_.COUNTRY))
-                .orderBy(asc(from.get(Address_.COUNTRY)));
+        query.select(count(from.get(Address_.id)))
+                .groupBy(from.get(Address_.country))
+                .orderBy(asc(from.get(Address_.country)));
 
         String execute = execute(query);
 
@@ -41,9 +49,9 @@ public class Tests {
         Query<Long> query = query(Long.class);
         From<Address> from = query.from(Address.class);
 
-        query.select(count(from.get(Address_.COUNTRY)))
-                .groupBy(from.get(Address_.COUNTRY))
-                .having(greaterThan(count(from.get(Address_.COUNTRY)), 5));
+        query.select(count(from.get(Address_.country)))
+                .groupBy(from.get(Address_.country))
+                .having(greaterThan(count(from.get(Address_.country)), 5));
 
         String execute = execute(query);
 
@@ -57,7 +65,7 @@ public class Tests {
         Query<Category> query = query(Category.class);
         From<Category> from = query.from(Category.class);
 
-        JsonJoin<Category, Translations> join = from.jsonJoin(jsonArray(Category_.NAME, "translations"));
+        JsonJoin<Category, Translations> join = from.jsonJoin(jsonArray(Category_.name, "translations"));
 
         query.select(from).where(
                 jsonEqual(join, "text", "Everybody")
@@ -77,7 +85,7 @@ public class Tests {
         From<Category> from = query.from(Category.class);
 
         query.select(from)
-                .orderBy(asc(from.get(Category_.ID)), desc(from.get(Category_.DESCRIPTION)));
+                .orderBy(asc(from.get(Category_.id)), desc(from.get(Category_.description)));
 
         String execute = execute(query);
 
@@ -91,7 +99,7 @@ public class Tests {
         Query<Category> query = query(Category.class);
         From<Category> from = query.from(Category.class);
 
-        query.select(from).where(isNull(from.get(Category_.DESCRIPTION)));
+        query.select(from).where(isNull(from.get(Category_.description)));
 
         String execute = execute(query);
 
@@ -105,7 +113,7 @@ public class Tests {
         Query<Category> query = query(Category.class);
         From<Category> from = query.from(Category.class);
 
-        query.select(from).where(isNotNull(from.get(Category_.DESCRIPTION)));
+        query.select(from).where(isNotNull(from.get(Category_.description)));
 
         String execute = execute(query);
 
@@ -119,7 +127,7 @@ public class Tests {
         Query<Number> query = query(Number.class);
         From<Category> from = query.from(Category.class);
 
-        query.select(max(from.get(Category_.ID)));
+        query.select(max(from.get(Category_.id)));
 
         String execute = execute(query);
 
@@ -134,7 +142,7 @@ public class Tests {
         Query<Number> query = query(Number.class);
         From<Category> from = query.from(Category.class);
 
-        query.select(min(from.get(Category_.ID)));
+        query.select(min(from.get(Category_.id)));
 
         String execute = execute(query);
 
@@ -149,7 +157,7 @@ public class Tests {
         Query<Number> query = query(Number.class);
         From<Category> from = query.from(Category.class);
 
-        query.select(count(from.get(Category_.ID)));
+        query.select(count(from.get(Category_.id)));
 
         String execute = execute(query);
 
@@ -163,7 +171,7 @@ public class Tests {
         Query<Number> query = query(Number.class);
         From<Category> from = query.from(Category.class);
 
-        query.select(avg(from.get(Category_.ID)));
+        query.select(avg(from.get(Category_.id)));
 
         String execute = execute(query);
 
@@ -177,7 +185,7 @@ public class Tests {
         Query<Number> query = query(Number.class);
         From<Category> from = query.from(Category.class);
 
-        query.select(SqlBuilder.sum(from.get(Category_.ID)));
+        query.select(SqlBuilder.sum(from.get(Category_.id)));
 
         String execute = execute(query);
 
@@ -207,8 +215,8 @@ public class Tests {
 
         query.select(from).where(
                 and(
-                        levensthein(from.get(Person_.FIRST_NAME), "Patrik"),
-                        like(from.get(Person_.FIRST_NAME), "Patrik%")
+                        levensthein(from.get(Person_.firstName), "Patrik"),
+                        like(from.get(Person_.firstName), "Patrik%")
                 )
 
         );
@@ -226,10 +234,10 @@ public class Tests {
         Query<Person> query = query(Person.class);
         From<Person> from = query.from(Person.class);
 
-        Join<Person, Address> join = from.join(Person_.ADDRESSES, NormalJoin.Type.NATURAL);
+        Join<Person, Address> join = from.join(Person_.addresses, NormalJoin.Type.NATURAL);
 
         query.select(from).where(
-                like(join.get(Address_.STREET), "Strasse")
+                like(join.get(Address_.street), "Strasse")
         );
 
         String execute = execute(query);
@@ -244,10 +252,10 @@ public class Tests {
         Query<Person> query = query(Person.class);
         From<Person> from = query.from(Person.class);
 
-        Join<Person, Address> join = from.join(Person_.ADDRESSES, NormalJoin.Type.LEFT);
+        Join<Person, Address> join = from.join(Person_.addresses, NormalJoin.Type.LEFT);
 
         query.select(from).where(
-                like(join.get(Address_.STREET), "Strasse")
+                like(join.get(Address_.street), "Strasse")
         );
 
         String execute = execute(query);
@@ -262,10 +270,10 @@ public class Tests {
         Query<Person> query = query(Person.class);
         From<Person> from = query.from(Person.class);
 
-        Join<Person, Address> join = from.join(Person_.ADDRESSES, NormalJoin.Type.RIGHT);
+        Join<Person, Address> join = from.join(Person_.addresses, NormalJoin.Type.RIGHT);
 
         query.select(from).where(
-                like(join.get(Address_.STREET), "Strasse")
+                like(join.get(Address_.street), "Strasse")
         );
 
         String execute = execute(query);
@@ -280,10 +288,10 @@ public class Tests {
         Query<Person> query = query(Person.class);
         From<Person> from = query.from(Person.class);
 
-        Join<Person, Address> join = from.join(Person_.ADDRESSES, NormalJoin.Type.INNER);
+        Join<Person, Address> join = from.join(Person_.addresses, NormalJoin.Type.INNER);
 
         query.select(from).where(
-                like(join.get(Address_.STREET), "Strasse")
+                like(join.get(Address_.street), "Strasse")
         );
 
         String execute = execute(query);
@@ -298,10 +306,10 @@ public class Tests {
         Query<Person> query = query(Person.class);
         From<Person> from = query.from(Person.class);
 
-        Join<Person, Address> join = from.join(Person_.ADDRESSES, NormalJoin.Type.FULL);
+        Join<Person, Address> join = from.join(Person_.addresses, NormalJoin.Type.FULL);
 
         query.select(from).where(
-                like(join.get(Address_.STREET), "Strasse")
+                like(join.get(Address_.street), "Strasse")
         );
 
         String execute = execute(query);
@@ -316,7 +324,7 @@ public class Tests {
         Query<Person> query = query(Person.class);
         From<Person> from = query.from(Person.class);
 
-        query.select(from).where(from.get(Person_.FIRST_NAME).in("Patrick", "Aleksander"));
+        query.select(from).where(from.get(Person_.firstName).in("Patrick", "Aleksander"));
 
         String execute = execute(query);
 
@@ -332,7 +340,7 @@ public class Tests {
 
         query.select(from).where(
                 between(
-                        from.get(Person_.BIRTHDATE),
+                        from.get(Person_.birthdate),
                         LocalDate.of(1980, 1, 1),
                         LocalDate.of(1981, 1, 1)
                 )
@@ -356,8 +364,8 @@ public class Tests {
 
         query.select(from).where(
                 exist(
-                        subQuery.select(subFrom.get(Product_.ID)).where(
-                                equal(subFrom.get(Product_.SUPPLIER), from.get(Supplier_.ID))
+                        subQuery.select(subFrom.get(Product_.id)).where(
+                                equal(subFrom.get(Product_.supplier), from.get(Supplier_.id))
                         )
                 )
         );

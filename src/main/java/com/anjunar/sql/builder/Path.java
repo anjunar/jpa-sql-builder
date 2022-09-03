@@ -5,6 +5,7 @@ import com.anjunar.introspector.bean.BeanModel;
 import com.anjunar.introspector.bean.BeanProperty;
 import com.anjunar.sql.builder.predicates.InPredicate;
 import jakarta.persistence.Column;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 import java.util.Arrays;
 
@@ -13,14 +14,14 @@ public class Path<E> extends Selection<E> {
 
     private final String columnName;
 
-    public Path(String attribute, From<E> parent) {
+    public <U> Path(SingularAttribute<U, E> attribute, From<E> parent) {
         this.parent = parent;
 
         BeanModel<E> beanModel = BeanIntrospector.create(parent.getSource());
-        BeanProperty<E, ?> property = beanModel.get(attribute);
+        BeanProperty<E, ?> property = beanModel.get(attribute.getName());
         Column column = property.getAnnotation(Column.class);
         if (column == null) {
-            columnName = attribute;
+            columnName = attribute.getName();
         } else {
             columnName = column.name();
         }

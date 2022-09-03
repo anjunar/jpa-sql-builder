@@ -6,10 +6,10 @@ import jakarta.persistence.metamodel.SingularAttribute;
 
 public class JsonJoin<E,U> extends Join<E,U> {
 
-    private final String attribute;
+    private final SingularAttribute<E,U> attribute;
     private final String property;
 
-    public JsonJoin(String attribute, String property) {
+    public JsonJoin(SingularAttribute<E,U> attribute, String property) {
         super(null);
         this.attribute = attribute;
         this.property = property;
@@ -25,7 +25,7 @@ public class JsonJoin<E,U> extends Join<E,U> {
                 .append("json_array_elements(")
                 .append(getParent().getAlias())
                 .append(".")
-                .append(attribute)
+                .append(attribute.getName())
                 .append(" -> '")
                 .append(property)
                 .append("') ")
