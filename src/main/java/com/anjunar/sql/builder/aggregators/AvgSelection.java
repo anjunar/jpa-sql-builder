@@ -14,7 +14,7 @@ public class AvgSelection<E, X> extends AbstractPathSelection<E, X> {
         return new StringBuilder()
                 .append("avg(")
                 .append(getPath().execute(context))
-                .append(") ")
+                .append(")")
                 .toString();
     }
 }

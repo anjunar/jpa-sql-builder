@@ -9,7 +9,7 @@ import jakarta.persistence.metamodel.SingularAttribute;
 
 import java.util.Arrays;
 
-public class Path<E> extends AbstractSelection<E> implements Expression<E> {
+public class Path<E> extends AbstractSelection<E> {
     private final From<E> parent;
 
     private final String columnName;

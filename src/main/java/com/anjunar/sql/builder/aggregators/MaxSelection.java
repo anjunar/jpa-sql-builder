@@ -14,7 +14,7 @@ public class MaxSelection<E, X> extends AbstractPathSelection<E, X> {
         return new StringBuilder()
                 .append("max(")
                 .append(getPath().execute(context))
-                .append(") ")
+                .append(")")
                 .toString();
     }
 }

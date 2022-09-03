@@ -14,7 +14,7 @@ public class MinSelection<E, X> extends AbstractPathSelection<E,X> {
         return new StringBuilder()
                 .append("min(")
                 .append(getPath().execute(context))
-                .append(") ")
+                .append(")")
                 .toString();
     }
 }

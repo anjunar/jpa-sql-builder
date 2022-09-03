@@ -4,12 +4,12 @@ import com.anjunar.sql.builder.AbstractFunction;
 import com.anjunar.sql.builder.Context;
 import com.anjunar.sql.builder.Expression;
 
-public class LevenstheinFunction<E> extends AbstractFunction<E> {
+public class LevenstheinFunction extends AbstractFunction<String> {
 
     private final String value;
-    private final Expression<E> attribute;
+    private final Expression<String> attribute;
 
-    public LevenstheinFunction(String value, Expression<E> attribute) {
+    public LevenstheinFunction(String value, Expression<String> attribute) {
         this.value = value;
         this.attribute = attribute;
     }

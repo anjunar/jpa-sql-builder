@@ -14,7 +14,7 @@ public class CountSelection<E, X> extends AbstractPathSelection<E, X> {
         return new StringBuilder()
                 .append("count(")
                 .append(getPath().execute(context))
-                .append(") ")
+                .append(")")
                 .toString();
     }
 }

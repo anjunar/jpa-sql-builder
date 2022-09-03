@@ -56,7 +56,6 @@ public class Tests {
         String execute = execute(query);
 
         String result = "select count(address.country) from Address address group by address.country having count(address.country) > :1";
-
         Assertions.assertEquals(execute, result);
     }
 
@@ -439,7 +438,23 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Product product where coalesce(product.name, :2) = :1";
+        String result = "select * from Product product where coalesce(product.name, :1) = :2";
+
+        Assertions.assertEquals(execute, result);
+    }
+
+    @Test
+    public void testAscii() {
+        Query<Product> query = query(Product.class);
+        From<Product> from = query.from(Product.class);
+
+        query.select(from).where(
+                SqlBuilder.equal(SqlBuilder.ascii(from.get(Product_.name)), "A")
+        );
+
+        String execute = execute(query);
+
+        String result = "select * from Product product where ASCII(product.name) = :1";
 
         Assertions.assertEquals(execute, result);
     }

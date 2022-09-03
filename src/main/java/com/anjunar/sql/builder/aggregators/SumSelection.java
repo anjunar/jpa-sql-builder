@@ -14,7 +14,7 @@ public class SumSelection<E, X> extends AbstractPathSelection<E, X> {
         return new StringBuilder()
                 .append("sum(")
                 .append(getPath().execute(context))
-                .append(") ")
+                .append(")")
                 .toString();
     }
 }

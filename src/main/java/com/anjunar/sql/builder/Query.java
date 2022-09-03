@@ -89,6 +89,7 @@ public class Query<E> {
         }
         if (Objects.nonNull(selection)) {
             sql.append(selection.execute(context));
+            sql.append(" ");
         } else {
             if (Objects.nonNull(path)) {
                 sql.append(path.execute(context));
