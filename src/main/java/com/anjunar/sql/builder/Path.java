@@ -8,7 +8,7 @@ import jakarta.persistence.Column;
 
 import java.util.Arrays;
 
-public class Path<E> {
+public class Path<E> extends Selection<E> {
     private final From<E> parent;
 
     private final String columnName;

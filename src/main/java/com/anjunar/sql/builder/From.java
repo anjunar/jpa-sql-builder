@@ -73,8 +73,8 @@ public class From<E> extends Selection<E> {
         throw new RuntimeException("Not Implemented yet");
     }
 
-    public Path<E> get(String attribute) {
-        return new Path<>(attribute, this);
+    public <X> Path<X> get(String attribute) {
+        return new Path<X>(attribute, (From<X>) this);
     }
 
     @Override

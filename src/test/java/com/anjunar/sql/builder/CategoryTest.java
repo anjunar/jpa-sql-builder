@@ -105,11 +105,11 @@ public class CategoryTest {
         Query<Number> query = query(Number.class);
         From<Category> from = query.from(Category.class);
 
-        query.select(count(from));
+        query.select(count(from.get(Category_.ID)));
 
         String execute = execute(query);
 
-        String result = "select count(*) from Category category";
+        String result = "select count(category.id) from Category category";
 
         Assertions.assertEquals(execute, result);
     }

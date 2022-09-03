@@ -7,6 +7,7 @@ import com.anjunar.sql.builder.aggregators.*;
 public class SqlBuilder {
 
     public static <E> String execute(Query<E> query) {
+        query.setContext(new Context());
         return query.execute();
     }
 
@@ -60,8 +61,8 @@ public class SqlBuilder {
         return new MinSelection<>(path);
     }
 
-    public static <E extends Number, X> Selection<E> count(From<X> from) {
-        return new CountSelection<>(from);
+    public static <E extends Number, X> Selection<E> count(Path<X> path) {
+        return new CountSelection<>(path);
     }
 
     public static <E extends Number, X> Selection<E> avg(Path<X> path) {
@@ -74,5 +75,17 @@ public class SqlBuilder {
 
     public static <E> BetweenPredicate<E> between(Path<E> path, Comparable<?> from, Comparable<?> to) {
         return new BetweenPredicate<>(path, from, to);
+    }
+
+    public static <E extends Comparable<?>> GreaterThanPredicate<E> greaterThan(Selection<E> selection, Comparable<?> value) {
+        return new GreaterThanPredicate<>(selection, value);
+    }
+
+    public static <E> ExistPredicate exist(Query<E> select) {
+        return new ExistPredicate<E>(select);
+    }
+
+    public static <E,U> EqualPredicate equal(Path<E> lhs, Path<U> rhs) {
+        return new EqualPredicate(lhs, rhs);
     }
 }

@@ -13,9 +13,11 @@ public class Query<E> {
 
     private final Class<E> result;
 
-    private final Context context = new Context();
+    private Context context;
 
     private From<E> from;
+
+    private Path<E> path;
 
     private Path<?> groupBy;
 
@@ -25,10 +27,17 @@ public class Query<E> {
 
     private final List<Predicate> predicates = new ArrayList<>();
 
+    private final List<Predicate> having = new ArrayList<>();
+
     private final List<Order> orders = new ArrayList<>();
 
-    public Query(Class<E> result) {
+    public Query(Class<E> result, Context context) {
         this.result = result;
+        this.context = context;
+    }
+
+    public Query(Class<E> result) {
+        this(result, new Context());
     }
 
     public Class<E> getResult() {
@@ -55,6 +64,10 @@ public class Query<E> {
         return context;
     }
 
+    public void setContext(Context context) {
+        this.context = context;
+    }
+
     public Query<E> distinct(boolean distinct) {
         this.distinct = distinct;
         return this;
@@ -69,13 +82,13 @@ public class Query<E> {
             case From<E> from -> {
                 this.from = from;
             }
-            case CountSelection<E,?> countSelection -> {
-                this.selection = countSelection;
-                this.from = (From<E>) countSelection.getFrom();
-            }
             case PathSelection<E, ?> pathSelection -> {
                 this.selection = pathSelection;
                 this.from = (From<E>) pathSelection.getPath().getParent();
+            }
+            case Path<E> path -> {
+                this.path = path;
+                this.from = path.getParent();
             }
             default -> throw new RuntimeException("Not Implemented yet");
         }
@@ -96,7 +109,13 @@ public class Query<E> {
         if (Objects.nonNull(selection)) {
             sql.append(selection.execute());
         } else {
-            sql.append("* ");
+            if (Objects.nonNull(path)) {
+                sql.append(path.execute());
+                sql.append(" ");
+            } else {
+                sql.append("* ");
+            }
+
         }
         sql.append("from ");
         sql.append(from.getTableName());
@@ -135,6 +154,13 @@ public class Query<E> {
             sql.append(groupBy.execute());
         }
 
+        if (! having.isEmpty()) {
+            sql.append(" having ");
+            for (Predicate predicate : having) {
+                sql.append(predicate.execute(context));
+            }
+        }
+
         if (! orders.isEmpty()) {
             sql.append(" order by ");
             sql.append(String.join(", ", orders.stream().map(Order::execute).toList()));
@@ -156,5 +182,14 @@ public class Query<E> {
     public Query<E> groupBy(Path<?> path) {
         this.groupBy = path;
         return this;
+    }
+
+    public Query<E> having(Predicate predicate) {
+        having.add(predicate);
+        return this;
+    }
+
+    public <X> Query<X> subQuery(Class<X> aClass) {
+        return new Query<>(aClass, context);
     }
 }

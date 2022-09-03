@@ -155,7 +155,7 @@ public class PersonTest {
         From<Person> from = query.from(Person.class);
 
         query.select(from).where(
-                SqlBuilder.between(
+                between(
                         from.get(Person_.BIRTHDATE),
                         LocalDate.of(1980, 1, 1),
                         LocalDate.of(1981, 1, 1)
