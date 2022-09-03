@@ -8,18 +8,18 @@ public class Order {
 
     }
 
-    private final Path<?> path;
+    private final Expression<?> path;
 
     private final Type type;
 
-    public Order(Path<?> path, Type type) {
+    public Order(Expression<?> path, Type type) {
         this.path = path;
         this.type = type;
     }
 
-    public String execute() {
+    public String execute(Context context) {
         return new StringBuilder()
-                .append(path.execute())
+                .append(path.execute(context))
                 .append(" ")
                 .append(type)
                 .toString();

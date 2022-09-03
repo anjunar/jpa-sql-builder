@@ -1,16 +1,16 @@
-package com.anjunar.sql.builder.predicates;
+package com.anjunar.sql.builder.predicates.logical;
 
 import com.anjunar.sql.builder.Context;
-import com.anjunar.sql.builder.Path;
-import com.anjunar.sql.builder.Predicate;
+import com.anjunar.sql.builder.Expression;
+import com.anjunar.sql.builder.AbstractPredicate;
 
-public class LikePredicate<E> extends Predicate {
+public class LikePredicate<E> extends AbstractPredicate<E> {
 
     private final String value;
 
-    private final Path<E> path;
+    private final Expression<E> path;
 
-    public LikePredicate(String value, Path<E> path) {
+    public LikePredicate(String value, Expression<E> path) {
         this.value = value;
         this.path = path;
     }
@@ -18,12 +18,10 @@ public class LikePredicate<E> extends Predicate {
     @Override
     public String execute(Context context) {
         Integer next = context.next();
-        mapping().put(next, value);
-
-        context.mappings().putAll(mapping());
+        context.mappings().put(next, value);
 
         return new StringBuilder()
-                .append(path.execute())
+                .append(path.execute(context))
                 .append(" ")
                 .append("like ")
                 .append(":")
@@ -35,7 +33,7 @@ public class LikePredicate<E> extends Predicate {
         return value;
     }
 
-    public Path<E> getPath() {
+    public Expression<E> getPath() {
         return path;
     }
 }

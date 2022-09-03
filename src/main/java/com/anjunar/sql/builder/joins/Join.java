@@ -1,19 +1,20 @@
 package com.anjunar.sql.builder.joins;
 
-import com.anjunar.sql.builder.Join;
+import com.anjunar.sql.builder.AbstractJoin;
 
-public class NormalJoin<U, E> extends Join<U, E> {
+public class Join<U, E> extends AbstractJoin<U, E> {
 
     public enum Type {
         LEFT,
         RIGHT,
         INNER,
-        NATURAL, FULL
+        NATURAL,
+        FULL
     }
 
     private final Type type;
 
-    public NormalJoin(Class<E> result, Type type) {
+    public Join(Class<E> result, Type type) {
         super(result);
         this.type = type;
     }

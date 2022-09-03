@@ -1,7 +1,7 @@
 package com.anjunar.sql.builder;
 
-import com.anjunar.sql.builder.joins.JsonJoin;
-import com.anjunar.sql.builder.joins.NormalJoin;
+import com.anjunar.sql.builder.joins.postgres.JsonJoin;
+import com.anjunar.sql.builder.joins.Join;
 import com.anjunar.sql.builder.aggregators.*;
 
 import java.util.ArrayList;
@@ -13,31 +13,24 @@ public class Query<E> {
 
     private final Class<E> result;
 
-    private Context context;
-
     private From<E> from;
 
     private Path<E> path;
 
     private Path<?> groupBy;
 
-    private Selection<E> selection;
+    private AbstractSelection<E> selection;
 
     private boolean distinct = false;
 
-    private final List<Predicate> predicates = new ArrayList<>();
+    private final List<Expression<?>> predicates = new ArrayList<>();
 
-    private final List<Predicate> having = new ArrayList<>();
+    private final List<Expression<?>> having = new ArrayList<>();
 
     private final List<Order> orders = new ArrayList<>();
 
-    public Query(Class<E> result, Context context) {
-        this.result = result;
-        this.context = context;
-    }
-
     public Query(Class<E> result) {
-        this(result, new Context());
+        this.result = result;
     }
 
     public Class<E> getResult() {
@@ -48,24 +41,12 @@ public class Query<E> {
         return distinct;
     }
 
-    public Selection<E> getFrom() {
+    public AbstractSelection<E> getFrom() {
         return from;
-    }
-
-    public List<Predicate> getPredicates() {
-        return predicates;
     }
 
     public List<Order> getOrders() {
         return orders;
-    }
-
-    public Context getContext() {
-        return context;
-    }
-
-    public void setContext(Context context) {
-        this.context = context;
     }
 
     public Query<E> distinct(boolean distinct) {
@@ -77,12 +58,12 @@ public class Query<E> {
         return new From<X>(aClass);
     }
 
-    public Query<E> select(Selection<E> selection) {
+    public Query<E> select(AbstractSelection<E> selection) {
         switch (selection) {
             case From<E> from -> {
                 this.from = from;
             }
-            case PathSelection<E, ?> pathSelection -> {
+            case AbstractPathSelection<E, ?> pathSelection -> {
                 this.selection = pathSelection;
                 this.from = (From<E>) pathSelection.getPath().getParent();
             }
@@ -95,22 +76,22 @@ public class Query<E> {
         return this;
     }
 
-    public <U> Query<E> where(Predicate predicate) {
+    public <U> Query<E> where(Expression<?> predicate) {
         predicates.add(predicate);
         return this;
     }
 
-    public String execute() {
+    public String execute(Context context) {
         StringBuilder sql = new StringBuilder();
         sql.append("select ");
         if (distinct) {
             sql.append("distinct ");
         }
         if (Objects.nonNull(selection)) {
-            sql.append(selection.execute());
+            sql.append(selection.execute(context));
         } else {
             if (Objects.nonNull(path)) {
-                sql.append(path.execute());
+                sql.append(path.execute(context));
                 sql.append(" ");
             } else {
                 sql.append("* ");
@@ -122,13 +103,13 @@ public class Query<E> {
         sql.append(" ");
         sql.append(from.getAlias());
 
-        for (Join<?, ?> join : from.getJoins()) {
+        for (AbstractJoin<?, ?> join : from.getJoins()) {
             switch (join) {
                 case JsonJoin<?, ?> jsonJoin -> {
                     sql.append(", ");
-                    sql.append(join.execute());
+                    sql.append(join.execute(context));
                 }
-                case NormalJoin<?,?> normalJoin -> {
+                case Join<?,?> normalJoin -> {
                     switch (normalJoin.getType()) {
                         case LEFT -> sql.append(" left join ");
                         case RIGHT -> sql.append(" right join ");
@@ -136,7 +117,7 @@ public class Query<E> {
                         case FULL -> sql.append(" full join ");
                         case NATURAL -> sql.append(" natural join ");
                     }
-                    sql.append(join.execute());
+                    sql.append(join.execute(context));
                 }
                 default -> throw new RuntimeException("Not implemented");
             }
@@ -144,26 +125,26 @@ public class Query<E> {
 
         if (! predicates.isEmpty()) {
             sql.append(" where ");
-            for (Predicate predicate : predicates) {
+            for (Expression<?> predicate : predicates) {
                 sql.append(predicate.execute(context));
             }
         }
 
         if (groupBy != null) {
             sql.append(" group by ");
-            sql.append(groupBy.execute());
+            sql.append(groupBy.execute(context));
         }
 
         if (! having.isEmpty()) {
             sql.append(" having ");
-            for (Predicate predicate : having) {
+            for (Expression<?> predicate : having) {
                 sql.append(predicate.execute(context));
             }
         }
 
         if (! orders.isEmpty()) {
             sql.append(" order by ");
-            sql.append(String.join(", ", orders.stream().map(Order::execute).toList()));
+            sql.append(String.join(", ", orders.stream().map(order -> order.execute(context)).toList()));
         }
 
         return sql.toString();
@@ -184,12 +165,12 @@ public class Query<E> {
         return this;
     }
 
-    public Query<E> having(Predicate predicate) {
+    public Query<E> having(AbstractPredicate predicate) {
         having.add(predicate);
         return this;
     }
 
     public <X> Query<X> subQuery(Class<X> aClass) {
-        return new Query<>(aClass, context);
+        return new Query<>(aClass);
     }
 }

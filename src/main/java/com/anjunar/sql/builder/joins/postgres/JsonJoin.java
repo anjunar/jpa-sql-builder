@@ -1,10 +1,10 @@
-package com.anjunar.sql.builder.joins;
+package com.anjunar.sql.builder.joins.postgres;
 
-import com.anjunar.sql.builder.Join;
-import com.anjunar.sql.builder.From;
+import com.anjunar.sql.builder.Context;
+import com.anjunar.sql.builder.AbstractJoin;
 import jakarta.persistence.metamodel.SingularAttribute;
 
-public class JsonJoin<E,U> extends Join<E,U> {
+public class JsonJoin<E,U> extends AbstractJoin<E,U> {
 
     private final SingularAttribute<E,U> attribute;
     private final String property;
@@ -20,7 +20,7 @@ public class JsonJoin<E,U> extends Join<E,U> {
     }
 
     @Override
-    public String execute() {
+    public String execute(Context context) {
         return new StringBuilder()
                 .append("json_array_elements(")
                 .append(getParent().getAlias())

@@ -3,13 +3,13 @@ package com.anjunar.sql.builder;
 import com.anjunar.introspector.bean.BeanIntrospector;
 import com.anjunar.introspector.bean.BeanModel;
 import com.anjunar.introspector.bean.BeanProperty;
-import com.anjunar.sql.builder.predicates.InPredicate;
+import com.anjunar.sql.builder.predicates.logical.InPredicate;
 import jakarta.persistence.Column;
 import jakarta.persistence.metamodel.SingularAttribute;
 
 import java.util.Arrays;
 
-public class Path<E> extends Selection<E> {
+public class Path<E> extends AbstractSelection<E> implements Expression<E> {
     private final From<E> parent;
 
     private final String columnName;
@@ -31,7 +31,7 @@ public class Path<E> extends Selection<E> {
         return parent;
     }
 
-    public String execute() {
+    public String execute(Context context) {
         return new StringBuilder()
                 .append(parent.getAlias())
                 .append(".")

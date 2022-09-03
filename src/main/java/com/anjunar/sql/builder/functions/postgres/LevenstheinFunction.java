@@ -1,15 +1,15 @@
-package com.anjunar.sql.builder.predicates;
+package com.anjunar.sql.builder.functions.postgres;
 
+import com.anjunar.sql.builder.AbstractFunction;
 import com.anjunar.sql.builder.Context;
-import com.anjunar.sql.builder.Path;
-import com.anjunar.sql.builder.Predicate;
+import com.anjunar.sql.builder.Expression;
 
-public class LevenstheinPredicate<E> extends Predicate {
+public class LevenstheinFunction<E> extends AbstractFunction<E> {
 
     private final String value;
-    private final Path<E> attribute;
+    private final Expression<E> attribute;
 
-    public LevenstheinPredicate(String value, Path<E> attribute) {
+    public LevenstheinFunction(String value, Expression<E> attribute) {
         this.value = value;
         this.attribute = attribute;
     }
@@ -17,13 +17,11 @@ public class LevenstheinPredicate<E> extends Predicate {
     @Override
     public String execute(Context context) {
         Integer next = context.next();
-        mapping().put(next, value);
-
-        context.mappings().putAll(mapping());
+        context.mappings().put(next, value);
 
         return new StringBuilder()
                 .append("levensthein(")
-                .append(attribute.execute())
+                .append(attribute.execute(context))
                 .append(", :")
                 .append(next)
                 .append(")")

@@ -1,16 +1,17 @@
-package com.anjunar.sql.builder.predicates;
+package com.anjunar.sql.builder.predicates.logical;
 
 import com.anjunar.sql.builder.Context;
-import com.anjunar.sql.builder.Predicate;
+import com.anjunar.sql.builder.AbstractPredicate;
+import com.anjunar.sql.builder.Expression;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class AndPredicate extends Predicate {
+public class AndPredicate extends AbstractPredicate<Boolean> {
 
-    private final List<Predicate> predicates;
+    private final List<Expression<?>> predicates;
 
-    public AndPredicate(Predicate... predicates) {
+    public AndPredicate(Expression<?>... predicates) {
         this.predicates = Arrays.asList(predicates);
     }
 

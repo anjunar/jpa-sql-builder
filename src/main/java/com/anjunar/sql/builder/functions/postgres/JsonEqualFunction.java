@@ -1,15 +1,15 @@
-package com.anjunar.sql.builder.predicates;
+package com.anjunar.sql.builder.functions.postgres;
 
+import com.anjunar.sql.builder.AbstractFunction;
 import com.anjunar.sql.builder.Context;
-import com.anjunar.sql.builder.Predicate;
-import com.anjunar.sql.builder.joins.JsonJoin;
+import com.anjunar.sql.builder.joins.postgres.JsonJoin;
 
-public class JsonEqualPredicate<E, U> extends Predicate {
+public class JsonEqualFunction<E, U> extends AbstractFunction<E> {
     private final JsonJoin<E, U> join;
     private final String property;
     private final String value;
 
-    public JsonEqualPredicate(JsonJoin<E, U> join, String property, String value) {
+    public JsonEqualFunction(JsonJoin<E, U> join, String property, String value) {
         this.join = join;
         this.property = property;
         this.value = value;

@@ -1,10 +1,10 @@
 package com.anjunar.sql.builder;
 
-public abstract class Join<U, E> extends From<E> {
+public abstract class AbstractJoin<U, E> extends From<E> {
 
     private From<U> parent;
 
-    public Join(Class<E> source) {
+    public AbstractJoin(Class<E> source) {
         super(source);
     }
 
@@ -16,7 +16,7 @@ public abstract class Join<U, E> extends From<E> {
         return parent;
     }
 
-    public String execute() {
+    public String execute(Context context) {
         return new StringBuilder()
                 .append(getTableName())
                 .append(" ")

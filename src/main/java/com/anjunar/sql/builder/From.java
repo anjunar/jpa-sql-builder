@@ -3,8 +3,8 @@ package com.anjunar.sql.builder;
 import com.anjunar.introspector.bean.BeanIntrospector;
 import com.anjunar.introspector.bean.BeanModel;
 import com.anjunar.introspector.bean.BeanProperty;
-import com.anjunar.sql.builder.joins.JsonJoin;
-import com.anjunar.sql.builder.joins.NormalJoin;
+import com.anjunar.sql.builder.joins.postgres.JsonJoin;
+import com.anjunar.sql.builder.joins.Join;
 import jakarta.persistence.Table;
 import jakarta.persistence.metamodel.PluralAttribute;
 import jakarta.persistence.metamodel.SingularAttribute;
@@ -13,11 +13,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class From<E> extends Selection<E> {
+public class From<E> extends AbstractSelection<E> {
 
     private final Class<E> source;
 
-    private final List<Join<E, ?>> joins = new ArrayList<>();
+    private final List<AbstractJoin<E, ?>> joins = new ArrayList<>();
 
     private final String tableName;
 
@@ -41,7 +41,7 @@ public class From<E> extends Selection<E> {
         return source;
     }
 
-    public List<Join<E, ?>> getJoins() {
+    public List<AbstractJoin<E, ?>> getJoins() {
         return joins;
     }
 
@@ -59,14 +59,14 @@ public class From<E> extends Selection<E> {
         return join;
     }
 
-    public <U> Join<E, U> join(PluralAttribute<E, ?, U> attribute, NormalJoin.Type type) {
+    public <U> AbstractJoin<E, U> join(PluralAttribute<E, ?, U> attribute, Join.Type type) {
         BeanModel<E> beanModel = BeanIntrospector.create(source);
         BeanProperty<E, ?> property = beanModel.get(attribute.getName());
         Class<?> rawType = property.getType().getRawType();
 
         if (Collection.class.isAssignableFrom(rawType)) {
             Class<U> collectionType = (Class<U>) property.getType().resolveType(Collection.class.getTypeParameters()[0]).getRawType();
-            NormalJoin<E, U> join = new NormalJoin<>(collectionType, type);
+            Join<E, U> join = new Join<>(collectionType, type);
             join.setParent(this);
             joins.add(join);
             return join;
@@ -80,7 +80,7 @@ public class From<E> extends Selection<E> {
     }
 
     @Override
-    public String execute() {
+    public String execute(Context context) {
         return "*";
     }
 }

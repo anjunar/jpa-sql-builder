@@ -1,8 +1,8 @@
 package com.anjunar.sql.builder;
 
 import com.anjunar.sql.builder.entities.*;
-import com.anjunar.sql.builder.joins.JsonJoin;
-import com.anjunar.sql.builder.joins.NormalJoin;
+import com.anjunar.sql.builder.joins.postgres.JsonJoin;
+import com.anjunar.sql.builder.joins.Join;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.metamodel.Attribute;
@@ -185,7 +185,7 @@ public class Tests {
         Query<Number> query = query(Number.class);
         From<Category> from = query.from(Category.class);
 
-        query.select(SqlBuilder.sum(from.get(Category_.id)));
+        query.select(sum(from.get(Category_.id)));
 
         String execute = execute(query);
 
@@ -234,7 +234,7 @@ public class Tests {
         Query<Person> query = query(Person.class);
         From<Person> from = query.from(Person.class);
 
-        Join<Person, Address> join = from.join(Person_.addresses, NormalJoin.Type.NATURAL);
+        AbstractJoin<Person, Address> join = from.join(Person_.addresses, Join.Type.NATURAL);
 
         query.select(from).where(
                 like(join.get(Address_.street), "Strasse")
@@ -252,7 +252,7 @@ public class Tests {
         Query<Person> query = query(Person.class);
         From<Person> from = query.from(Person.class);
 
-        Join<Person, Address> join = from.join(Person_.addresses, NormalJoin.Type.LEFT);
+        AbstractJoin<Person, Address> join = from.join(Person_.addresses, Join.Type.LEFT);
 
         query.select(from).where(
                 like(join.get(Address_.street), "Strasse")
@@ -270,7 +270,7 @@ public class Tests {
         Query<Person> query = query(Person.class);
         From<Person> from = query.from(Person.class);
 
-        Join<Person, Address> join = from.join(Person_.addresses, NormalJoin.Type.RIGHT);
+        AbstractJoin<Person, Address> join = from.join(Person_.addresses, Join.Type.RIGHT);
 
         query.select(from).where(
                 like(join.get(Address_.street), "Strasse")
@@ -288,7 +288,7 @@ public class Tests {
         Query<Person> query = query(Person.class);
         From<Person> from = query.from(Person.class);
 
-        Join<Person, Address> join = from.join(Person_.addresses, NormalJoin.Type.INNER);
+        AbstractJoin<Person, Address> join = from.join(Person_.addresses, Join.Type.INNER);
 
         query.select(from).where(
                 like(join.get(Address_.street), "Strasse")
@@ -306,7 +306,7 @@ public class Tests {
         Query<Person> query = query(Person.class);
         From<Person> from = query.from(Person.class);
 
-        Join<Person, Address> join = from.join(Person_.addresses, NormalJoin.Type.FULL);
+        AbstractJoin<Person, Address> join = from.join(Person_.addresses, Join.Type.FULL);
 
         query.select(from).where(
                 like(join.get(Address_.street), "Strasse")
@@ -378,5 +378,70 @@ public class Tests {
 
     }
 
+    @Test
+    public void testAny() {
+        Query<Product> query = query(Product.class);
+        From<Product> from = query.from(Product.class);
+
+        Query<Long> subQuery = query.subQuery(Long.class);
+        From<OrderDetail> subFrom = query.from(OrderDetail.class);
+
+        query.select(from).where(
+                any(
+                        from.get(Product_.id),
+                        subQuery.select(subFrom.get(OrderDetail_.id)).where(
+                                equal(subFrom.get(OrderDetail_.quantity), 10)
+                        )
+                )
+        );
+
+        String execute = execute(query);
+
+        String result = "select * from Product product where product.id = any (select orderdetail.id from OrderDetail orderdetail where orderdetail.quantity = :1)";
+
+        Assertions.assertEquals(execute, result);
+
+    }
+
+    @Test
+    public void testAll() {
+        Query<Product> query = query(Product.class);
+        From<Product> from = query.from(Product.class);
+
+        Query<Long> subQuery = query.subQuery(Long.class);
+        From<OrderDetail> subFrom = query.from(OrderDetail.class);
+
+        query.select(from).where(
+                all(
+                        from.get(Product_.id),
+                        subQuery.select(subFrom.get(OrderDetail_.id)).where(
+                                equal(subFrom.get(OrderDetail_.quantity), 10)
+                        )
+                )
+        );
+
+        String execute = execute(query);
+
+        String result = "select * from Product product where product.id = all (select orderdetail.id from OrderDetail orderdetail where orderdetail.quantity = :1)";
+
+        Assertions.assertEquals(execute, result);
+
+    }
+
+    @Test
+    public void testCoalesce() {
+        Query<Product> query = query(Product.class);
+        From<Product> from = query.from(Product.class);
+
+        query.select(from).where(
+                equal(coalesce(from.get(Product_.name), ""), "test")
+        );
+
+        String execute = execute(query);
+
+        String result = "select * from Product product where coalesce(product.name, :2) = :1";
+
+        Assertions.assertEquals(execute, result);
+    }
 
 }
