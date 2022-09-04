@@ -95,20 +95,21 @@ public class Query<E> {
                 sql.append(path.execute(context));
                 sql.append(" ");
             } else {
-                sql.append("* ");
+                sql.append(from.destinationTableAlias());
+                sql.append(".* ");
             }
 
         }
         sql.append("from ");
-        sql.append(from.getTableName());
+        sql.append(from.destinationTableName());
         sql.append(" ");
-        sql.append(from.getAlias());
+        sql.append(from.destinationTableAlias());
 
         for (AbstractJoin<?, ?> join : from.getJoins()) {
             switch (join) {
                 case JsonJoin<?, ?> jsonJoin -> {
                     sql.append(", ");
-                    sql.append(join.execute(context));
+                    sql.append(jsonJoin.execute(context));
                 }
                 case Join<?,?> normalJoin -> {
                     switch (normalJoin.getType()) {

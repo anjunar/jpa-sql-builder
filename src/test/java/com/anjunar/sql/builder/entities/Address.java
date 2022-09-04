@@ -1,8 +1,6 @@
 package com.anjunar.sql.builder.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
 public class Address {
@@ -58,4 +56,5 @@ public class Address {
     public void setCountry(String country) {
         this.country = country;
     }
+
 }

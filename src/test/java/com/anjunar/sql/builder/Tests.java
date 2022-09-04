@@ -1,19 +1,17 @@
 package com.anjunar.sql.builder;
 
 import com.anjunar.sql.builder.entities.*;
-import com.anjunar.sql.builder.joins.postgres.JsonJoin;
 import com.anjunar.sql.builder.joins.Join;
+import com.anjunar.sql.builder.joins.postgres.JsonJoin;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Persistence;
-import jakarta.persistence.metamodel.Attribute;
-import jakarta.persistence.metamodel.EntityType;
-import jakarta.persistence.metamodel.Metamodel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.util.Set;
 
 import static com.anjunar.sql.builder.SqlBuilder.*;
 
@@ -22,10 +20,47 @@ public class Tests {
     @BeforeAll
     public static void startUp() {
         EntityManagerFactory factory = Persistence.createEntityManagerFactory("test");
-        Metamodel metamodel = factory.getMetamodel();
-        EntityType<Address> entity = metamodel.entity(Address.class);
-        Set<Attribute<? super Address, ?>> attributes = entity.getAttributes();
-        System.out.println(attributes);
+
+        EntityManager entityManager = factory.createEntityManager();
+
+        EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+
+        Person patrick = new Person();
+        patrick.setFirstName("Patrick");
+        patrick.setLastName("Bittner");
+        patrick.setBirthdate(LocalDate.of(1980, 1, 4));
+
+        entityManager.persist(patrick);
+
+        Address beim = new Address();
+        beim.setStreet("Beim alten Schützenhof 28");
+        beim.setZipCode("22083");
+        beim.setState("Hamburg");
+        beim.setCountry("Germany");
+
+        Address test = new Address();
+        test.setStreet("test");
+        test.setState("test");
+        test.setZipCode("test");
+        test.setCountry("test");
+
+        patrick.getAddresses().add(beim);
+        patrick.getAddresses().add(test);
+
+        entityManager.persist(beim);
+        entityManager.persist(test);
+
+        transaction.commit();
+
+        System.out.println("Inserted Data");
+
+        String sql = "select p.* from PERSON p join PERSON_ADDRESS PA join ADDRESS A";
+
+        Person singleResult = (Person) entityManager.createNativeQuery(sql, Person.class)
+                .getSingleResult();
+
+        System.out.println(singleResult);
     }
 
     @Test
@@ -41,7 +76,7 @@ public class Tests {
 
         String result = "select count(address.id) from Address address group by address.country order by address.country ASC";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -56,7 +91,7 @@ public class Tests {
         String execute = execute(query);
 
         String result = "select count(address.country) from Address address group by address.country having count(address.country) > :1";
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -72,9 +107,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Category category, json_array_elements(category.name -> 'translations') translations where translations ->> 'text' = 'Everybody'";
+        String result = "select category.* from Category category, json_array_elements(category.name -> 'translations') translations where translations ->> 'text' = 'Everybody'";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
 
     }
 
@@ -88,9 +123,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Category category order by category.id ASC, category.description DESC";
+        String result = "select category.* from Category category order by category.id ASC, category.description DESC";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -102,9 +137,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Category category where category.description is null";
+        String result = "select category.* from Category category where category.description is null";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -116,9 +151,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Category category where category.description is not null";
+        String result = "select category.* from Category category where category.description is not null";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -132,7 +167,7 @@ public class Tests {
 
         String result = "select max(category.id) from Category category";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
 
     }
 
@@ -147,7 +182,7 @@ public class Tests {
 
         String result = "select min(category.id) from Category category";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
 
     }
 
@@ -162,7 +197,7 @@ public class Tests {
 
         String result = "select count(category.id) from Category category";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -176,7 +211,7 @@ public class Tests {
 
         String result = "select avg(category.id) from Category category";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -190,7 +225,7 @@ public class Tests {
 
         String result = "select sum(category.id) from Category category";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -202,9 +237,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select distinct * from Person person";
+        String result = "select distinct person.* from Person person";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -222,9 +257,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Person person where levensthein(person.firstName, :1) and person.firstName like :2";
+        String result = "select person.* from Person person where levensthein(person.firstName, :1) and person.firstName like :2";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
 
     }
 
@@ -241,9 +276,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Person person natural join Address address where address.street like :1";
+        String result = "select person.* from Person person natural join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :1";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -259,9 +294,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Person person left join Address address where address.street like :1";
+        String result = "select person.* from Person person left join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :1";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -277,9 +312,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Person person right join Address address where address.street like :1";
+        String result = "select person.* from Person person right join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :1";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -295,9 +330,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Person person inner join Address address where address.street like :1";
+        String result = "select person.* from Person person inner join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :1";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -313,9 +348,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Person person full join Address address where address.street like :1";
+        String result = "select person.* from Person person full join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :1";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -327,9 +362,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Person person where person.firstName in ( :1)";
+        String result = "select person.* from Person person where person.firstName in ( :1)";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -347,9 +382,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Person person where person.birthdate between :1 and :2";
+        String result = "select person.* from Person person where person.birthdate between :1 and :2";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -371,9 +406,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Supplier supplier where exists (select product.id from Product product where product.supplier = supplier.id)";
+        String result = "select supplier.* from Supplier supplier where exists (select product.id from Product product where product.supplier = supplier.id)";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
 
     }
 
@@ -396,9 +431,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Product product where product.id = any (select orderdetail.id from OrderDetail orderdetail where orderdetail.quantity = :1)";
+        String result = "select product.* from Product product where product.id = any (select orderdetail.id from OrderDetail orderdetail where orderdetail.quantity = :1)";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
 
     }
 
@@ -421,9 +456,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Product product where product.id = all (select orderdetail.id from OrderDetail orderdetail where orderdetail.quantity = :1)";
+        String result = "select product.* from Product product where product.id = all (select orderdetail.id from OrderDetail orderdetail where orderdetail.quantity = :1)";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
 
     }
 
@@ -438,9 +473,9 @@ public class Tests {
 
         String execute = execute(query);
 
-        String result = "select * from Product product where coalesce(product.name, :1) = :2";
+        String result = "select product.* from Product product where coalesce(product.name, :1) = :2";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
     }
 
     @Test
@@ -449,14 +484,93 @@ public class Tests {
         From<Product> from = query.from(Product.class);
 
         query.select(from).where(
-                SqlBuilder.equal(SqlBuilder.ascii(from.get(Product_.name)), "A")
+                equal(ascii(from.get(Product_.name)), "A")
         );
 
         String execute = execute(query);
 
-        String result = "select * from Product product where ASCII(product.name) = :1";
+        String result = "select product.* from Product product where ASCII(product.name) = :1";
 
-        Assertions.assertEquals(execute, result);
+        Assertions.assertEquals(result, execute);
+    }
+
+    @Test
+    public void testArithmetic() {
+        Query<Product> query = query(Product.class);
+        From<Product> from = query.from(Product.class);
+
+        query.select(from).where(
+                add(from.get(Product_.price), 3)
+        );
+
+        String execute = execute(query);
+
+        String result = "select product.* from Product product where product.price + :1";
+
+        Assertions.assertEquals(result, execute);
+    }
+
+    @Test
+    public void testBitwise() {
+        Query<Product> query = query(Product.class);
+        From<Product> from = query.from(Product.class);
+
+        query.select(from).where(
+                bitwiseAnd(from.get(Product_.price), 3)
+        );
+
+        String execute = execute(query);
+
+        String result = "select product.* from Product product where product.price & :1";
+
+        Assertions.assertEquals(result, execute);
+    }
+
+    @Test
+    public void testCompound() {
+        Query<Product> query = query(Product.class);
+        From<Product> from = query.from(Product.class);
+
+        query.select(from).where(
+                addEquals(from.get(Product_.price), 3)
+        );
+
+        String execute = execute(query);
+        String result = "select product.* from Product product where product.price += :1";
+
+        Assertions.assertEquals(result, execute);
+    }
+
+    @Test
+    public void testNot() {
+        Query<Product> query = query(Product.class);
+        From<Product> from = query.from(Product.class);
+
+        query.select(from).where(
+                like(not(from.get(Product_.name)), "%test")
+        );
+
+        String execute = execute(query);
+        String result = "select product.* from Product product where product.name not like :1";
+
+        Assertions.assertEquals(result, execute);
+    }
+
+    @Test
+    public void testOneToOneJoin() {
+        Query<Product> query = query(Product.class);
+        From<Product> from = query.from(Product.class);
+
+        AbstractJoin<Product, Supplier> join = from.join(Product_.supplier, Join.Type.LEFT);
+        query.select(from).where(
+                like(join.get(Supplier_.name), "test")
+        );
+
+        String execute = execute(query);
+
+        String result = "select product.* from Product product left join Supplier supplier on supplier.id = product.supplier_id where supplier.name like :1";
+
+        Assertions.assertEquals(result, execute);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.anjunar.sql.builder.joins;
 
+import com.anjunar.introspector.bean.BeanProperty;
 import com.anjunar.sql.builder.AbstractJoin;
 
 public class Join<U, E> extends AbstractJoin<U, E> {
@@ -14,8 +15,8 @@ public class Join<U, E> extends AbstractJoin<U, E> {
 
     private final Type type;
 
-    public Join(Class<E> result, Type type) {
-        super(result);
+    public Join(Class<E> result, Type type, BeanProperty<?, ?> property) {
+        super(result, property);
         this.type = type;
     }
 

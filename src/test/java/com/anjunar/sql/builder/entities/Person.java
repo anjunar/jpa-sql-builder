@@ -1,9 +1,6 @@
 package com.anjunar.sql.builder.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -22,7 +19,14 @@ public class Person {
 
     private LocalDate birthdate;
 
-    @OneToMany
+    @OneToMany()
+/*
+    @JoinTable(
+            name = "PERSON_ADDRESS",
+            joinColumns = @JoinColumn(name = "PERSON_ID"),
+            inverseJoinColumns = @JoinColumn(name = "ADDRESSES_ID")
+    )
+*/
     private final Set<Address> addresses = new HashSet<>();
 
     public Long getId() {

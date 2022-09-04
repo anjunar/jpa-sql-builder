@@ -10,7 +10,7 @@ public class JsonJoin<E,U> extends AbstractJoin<E,U> {
     private final String property;
 
     public JsonJoin(SingularAttribute<E,U> attribute, String property) {
-        super(null);
+        super(null, null);
         this.attribute = attribute;
         this.property = property;
     }
@@ -23,7 +23,7 @@ public class JsonJoin<E,U> extends AbstractJoin<E,U> {
     public String execute(Context context) {
         return new StringBuilder()
                 .append("json_array_elements(")
-                .append(getParent().getAlias())
+                .append(getParent().destinationTableAlias())
                 .append(".")
                 .append(attribute.getName())
                 .append(" -> '")

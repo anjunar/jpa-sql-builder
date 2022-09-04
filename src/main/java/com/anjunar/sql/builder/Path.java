@@ -33,7 +33,7 @@ public class Path<E> extends AbstractSelection<E> {
 
     public String execute(Context context) {
         return new StringBuilder()
-                .append(parent.getAlias())
+                .append(parent.destinationTableAlias())
                 .append(".")
                 .append(columnName)
                 .toString();

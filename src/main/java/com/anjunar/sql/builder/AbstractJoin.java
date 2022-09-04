@@ -1,11 +1,15 @@
 package com.anjunar.sql.builder;
 
+import com.anjunar.introspector.bean.BeanProperty;
+
 public abstract class AbstractJoin<U, E> extends From<E> {
 
+    private final BeanProperty<?, ?> property;
     private From<U> parent;
 
-    public AbstractJoin(Class<E> source) {
-        super(source);
+    public AbstractJoin(Class<E> collectionType, BeanProperty<?, ?> property) {
+        super(collectionType);
+        this.property = property;
     }
 
     public void setParent(From<U> parent) {
@@ -16,12 +20,7 @@ public abstract class AbstractJoin<U, E> extends From<E> {
         return parent;
     }
 
-    public String execute(Context context) {
-        return new StringBuilder()
-                .append(getTableName())
-                .append(" ")
-                .append(getAlias())
-                .toString();
+    public BeanProperty<?, ?> getBeanProperty() {
+        return property;
     }
-
 }

@@ -1,9 +1,6 @@
 package com.anjunar.sql.builder.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 
@@ -17,6 +14,7 @@ public class Product {
     private String name;
 
     @OneToOne
+//    @JoinColumn(name = "SUPPLIER_ID")
     private Supplier supplier;
 
     private String unit;
