@@ -1,14 +1,17 @@
-package com.anjunar.sql.builder.joins.jpa;
+package com.anjunar.sql.builder.joins.jpa.mapped;
 
 import com.anjunar.introspector.bean.BeanProperty;
 import com.anjunar.sql.builder.Context;
 import com.anjunar.sql.builder.JPAHelper;
 import com.anjunar.sql.builder.joins.Join;
-import com.google.common.base.Strings;
 
-public class OneToManyJoin<U, E> extends Join<U, E> {
-    public OneToManyJoin(Class<E> result, Type type, BeanProperty<?, ?> property) {
+public class ManyToManyMappedJoin<U, E> extends Join<U, E> {
+
+    private final BeanProperty<?, ?> sourceProperty;
+
+    public ManyToManyMappedJoin(Class<E> result, Type type, BeanProperty<?, ?> property, BeanProperty<?,?> sourceProperty) {
         super(result, type, property);
+        this.sourceProperty = sourceProperty;
     }
 
     private String joinTableName() {
@@ -26,7 +29,7 @@ public class OneToManyJoin<U, E> extends Join<U, E> {
                 " = " +
                 joinTableAlias() +
                 "." +
-                JPAHelper.joinTableColumnName(getBeanProperty(), getParent());
+                JPAHelper.inverseJoinColumn(getBeanProperty(), this);
     }
 
     private String destinationOnExpression() {
@@ -36,7 +39,7 @@ public class OneToManyJoin<U, E> extends Join<U, E> {
                 " = " +
                 joinTableAlias() +
                 "." +
-                JPAHelper.inverseJoinColumn(getBeanProperty(), this);
+                JPAHelper.joinTableColumnNameMapped(sourceProperty, this);
     }
 
     public String execute(Context context) {

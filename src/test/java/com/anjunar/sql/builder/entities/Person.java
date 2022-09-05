@@ -19,6 +19,9 @@ public class Person {
 
     private LocalDate birthdate;
 
+    @OneToMany(mappedBy = "person")
+    private Set<Email> emails;
+
     @OneToMany()
 /*
     @JoinTable(
@@ -63,5 +66,13 @@ public class Person {
 
     public Set<Address> getAddresses() {
         return addresses;
+    }
+
+    public Set<Email> getEmails() {
+        return emails;
+    }
+
+    public void setEmails(Set<Email> emails) {
+        this.emails = emails;
     }
 }

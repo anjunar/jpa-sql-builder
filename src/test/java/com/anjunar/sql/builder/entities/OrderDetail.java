@@ -1,9 +1,6 @@
 package com.anjunar.sql.builder.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 
 @Entity
 public class OrderDetail {
@@ -12,7 +9,8 @@ public class OrderDetail {
     @GeneratedValue
     private Long id;
 
-    @OneToOne
+    @ManyToOne
+//    @JoinColumn(name = "PRODUCT_ID")
     private Product product;
 
     private Integer quantity;

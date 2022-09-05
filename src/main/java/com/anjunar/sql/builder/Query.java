@@ -118,6 +118,7 @@ public class Query<E> {
                         case INNER -> sql.append(" inner join ");
                         case FULL -> sql.append(" full join ");
                         case NATURAL -> sql.append(" natural join ");
+                        case STANDARD -> sql.append(" join ");
                     }
                     sql.append(join.execute(context));
                 }
@@ -167,7 +168,7 @@ public class Query<E> {
         return this;
     }
 
-    public Query<E> having(AbstractPredicate predicate) {
+    public Query<E> having(AbstractPredicate<?> predicate) {
         having.add(predicate);
         return this;
     }

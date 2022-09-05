@@ -10,7 +10,9 @@ public class Join<U, E> extends AbstractJoin<U, E> {
         RIGHT,
         INNER,
         NATURAL,
-        FULL
+        FULL,
+
+        STANDARD
     }
 
     private final Type type;

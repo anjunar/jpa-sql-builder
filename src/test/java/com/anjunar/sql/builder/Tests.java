@@ -573,4 +573,93 @@ public class Tests {
         Assertions.assertEquals(result, execute);
     }
 
+    @Test
+    public void testManyToOne() {
+        Query<OrderDetail> query = query(OrderDetail.class);
+        From<OrderDetail> from = query.from(OrderDetail.class);
+
+        AbstractJoin<OrderDetail, Product> join = from.join(OrderDetail_.product);
+
+        query.select(from).where(
+                like(join.get(Product_.name), "test")
+        );
+
+        String execute = execute(query);
+
+        String result = "select orderdetail.* from OrderDetail orderdetail join Product product on product.id = orderdetail.product_id where product.name like :1";
+
+        Assertions.assertEquals(result, execute);
+    }
+
+    @Test
+    public void testManyToManyJoin() {
+        Query<Product> query = query(Product.class);
+        From<Product> from = query.from(Product.class);
+
+        AbstractJoin<Product, Text> join = from.join(Product_.texts);
+
+        query.select(from).where(
+                like(join.get(Text_.data), "test")
+        );
+
+        String execute = execute(query);
+
+        String result = "select product.* from Product product join Product_Text product_text on product.id = product_text.product_id join Text text on text.id = product_text.texts_id where text.data like :1";
+
+        Assertions.assertEquals(result, execute);
+    }
+
+    @Test
+    public void testOneToOneMapped() {
+        Query<Supplier> query = query(Supplier.class);
+        From<Supplier> from = query.from(Supplier.class);
+
+        AbstractJoin<Supplier, Product> join = from.join(Supplier_.product);
+
+        query.select(from).where(
+                like(join.get(Product_.name), "test")
+        );
+
+        String execute = execute(query);
+
+        String result = "select supplier.* from Supplier supplier join Product product on supplier.id = product.supplier_id where product.name like :1";
+
+        Assertions.assertEquals(result, execute);
+    }
+
+    @Test
+    public void testOneToManyMapped() {
+        Query<Person> query = query(Person.class);
+        From<Person> from = query.from(Person.class);
+
+        AbstractJoin<Person, Email> join = from.join(Person_.emails);
+
+        query.select(from).where(
+                like(join.get(Email_.email), "test")
+        );
+
+        String execute = execute(query);
+
+        String result = "select person.* from Person person join Email email on person.id = email.PERSON_ID where email.email like :1";
+
+        Assertions.assertEquals(result, execute);
+    }
+
+    @Test
+    public void testManyToManyMapped() {
+        Query<Text> query = query(Text.class);
+        From<Text> from = query.from(Text.class);
+
+        AbstractJoin<Text, Product> join = from.join(Text_.products);
+
+        query.select(from).where(
+                like(join.get(Product_.name), "test")
+        );
+
+        String execute = execute(query);
+
+        String result = "select text.* from Text text join Text_Product text_product on text.id = text_product.texts_id join Product product on product.id = text_product.products_id where product.name like :1";
+
+        Assertions.assertEquals(result, execute);
+    }
 }

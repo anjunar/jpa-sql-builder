@@ -3,6 +3,7 @@ package com.anjunar.sql.builder.entities;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Entity
 public class Product {
@@ -20,6 +21,16 @@ public class Product {
     private String unit;
 
     private BigDecimal price;
+
+    @ManyToMany
+/*
+    @JoinTable(
+            name = "PRODUCT_TEXT",
+            joinColumns = @JoinColumn(name = "PRODUCTS_ID"),
+            inverseJoinColumns = @JoinColumn(name = "TEXTS_ID")
+    )
+*/
+    private Set<Text> texts;
 
     public Long getId() {
         return id;
@@ -59,5 +70,13 @@ public class Product {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public Set<Text> getTexts() {
+        return texts;
+    }
+
+    public void setTexts(Set<Text> texts) {
+        this.texts = texts;
     }
 }

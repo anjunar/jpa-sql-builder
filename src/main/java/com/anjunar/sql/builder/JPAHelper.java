@@ -16,7 +16,8 @@ public class JPAHelper {
         return column.name();
     }
 
-    public static String table(BeanModel<?> model) {
+    public static String table(Class<?> aClass) {
+        BeanModel<?> model = BeanIntrospector.create(aClass);
         Table table = model.getAnnotation(Table.class);
         if (table == null) {
             return model.getType().getRawType().getSimpleName();
@@ -39,12 +40,10 @@ public class JPAHelper {
         JoinTable joinTable = property.getAnnotation(JoinTable.class);
         if (joinTable == null) {
             Class<?> source = from.getSource();
-            BeanModel<?> sourceModel = BeanIntrospector.create(source);
-            String sourceName = table(sourceModel);
+            String sourceName = table(source);
 
             Class<?> destination = join.getSource();
-            BeanModel<?> destinationModel = BeanIntrospector.create(destination);
-            String destinationName = table(destinationModel);
+            String destinationName = table(destination);
             return sourceName + "_" + destinationName;
         }
         return joinTable.name();
@@ -56,6 +55,16 @@ public class JPAHelper {
             String id = id(from.getSource());
 
             return from.destinationTableName().toLowerCase() + "_" + id;
+        }
+        return joinTable.joinColumns()[0].name();
+    }
+
+    public static String joinTableColumnNameMapped(BeanProperty<?, ?> property, From<?> from) {
+        JoinTable joinTable = property.getAnnotation(JoinTable.class);
+        if (joinTable == null) {
+            String id = id(from.getSource());
+
+            return column(property) + "_" + id;
         }
         return joinTable.joinColumns()[0].name();
     }

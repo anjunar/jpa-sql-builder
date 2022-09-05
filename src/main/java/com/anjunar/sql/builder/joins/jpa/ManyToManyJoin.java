@@ -8,11 +8,8 @@ import com.google.common.base.Strings;
 
 public class ManyToManyJoin<U, E> extends Join<U, E> {
 
-    private final String mappedBy;
-
-    public ManyToManyJoin(Class<E> result, Type type, BeanProperty<?, ?> property, String mappedBy) {
+    public ManyToManyJoin(Class<E> result, Type type, BeanProperty<?, ?> property) {
         super(result, type, property);
-        this.mappedBy = mappedBy;
     }
 
     private String joinTableName() {
@@ -44,21 +41,17 @@ public class ManyToManyJoin<U, E> extends Join<U, E> {
     }
 
     public String execute(Context context) {
-        if (Strings.isNullOrEmpty(mappedBy)) {
-            return joinTableName() +
-                    " " +
-                    joinTableAlias() +
-                    " on " +
-                    joinOnExpression() +
-                    " join " +
-                    destinationTableName() +
-                    " " +
-                    destinationTableAlias() +
-                    " on " +
-                    destinationOnExpression();
-        } else {
-            throw new RuntimeException("not implemented yet");
-        }
+        return joinTableName() +
+                " " +
+                joinTableAlias() +
+                " on " +
+                joinOnExpression() +
+                " join " +
+                destinationTableName() +
+                " " +
+                destinationTableAlias() +
+                " on " +
+                destinationOnExpression();
     }
 
 }

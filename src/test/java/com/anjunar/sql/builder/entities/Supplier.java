@@ -3,6 +3,7 @@ package com.anjunar.sql.builder.entities;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class Supplier {
@@ -22,6 +23,9 @@ public class Supplier {
     private String zipCode;
 
     private String country;
+
+    @OneToOne(mappedBy = "supplier")
+    private Product product;
 
     public Long getId() {
         return id;
@@ -77,5 +81,13 @@ public class Supplier {
 
     public void setCountry(String country) {
         this.country = country;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
     }
 }

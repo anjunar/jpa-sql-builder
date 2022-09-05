@@ -3,11 +3,13 @@ package com.anjunar.sql.builder;
 import com.anjunar.introspector.bean.BeanIntrospector;
 import com.anjunar.introspector.bean.BeanModel;
 import com.anjunar.introspector.bean.BeanProperty;
-import com.anjunar.sql.builder.joins.jpa.ManyToManyJoin;
-import com.anjunar.sql.builder.joins.jpa.OneToManyJoin;
-import com.anjunar.sql.builder.joins.jpa.OneToOneJoin;
+import com.anjunar.sql.builder.joins.jpa.*;
+import com.anjunar.sql.builder.joins.jpa.mapped.ManyToManyMappedJoin;
+import com.anjunar.sql.builder.joins.jpa.mapped.OneToManyMappedJoin;
+import com.anjunar.sql.builder.joins.jpa.mapped.OneToOneMappedJoin;
 import com.anjunar.sql.builder.joins.postgres.JsonJoin;
 import com.anjunar.sql.builder.joins.Join;
+import com.google.common.base.Strings;
 import jakarta.persistence.*;
 import jakarta.persistence.metamodel.PluralAttribute;
 import jakarta.persistence.metamodel.SingularAttribute;
@@ -31,8 +33,7 @@ public class From<E> extends AbstractSelection<E> {
         if (source == null) {
             tableName = null;
         } else {
-            BeanModel<E> beanModel = BeanIntrospector.create(source);
-            tableName = JPAHelper.table(beanModel);
+            tableName = JPAHelper.table(source);
         }
     }
 
@@ -58,15 +59,46 @@ public class From<E> extends AbstractSelection<E> {
         return join;
     }
 
+    public <U> AbstractJoin<E,U> join(SingularAttribute<E, U> attribute) {
+        return join(attribute, Join.Type.STANDARD);
+    }
+
     public <U> AbstractJoin<E,U> join(SingularAttribute<E, U> attribute, Join.Type type) {
         BeanModel<E> beanModel = BeanIntrospector.create(source);
         BeanProperty<E, U> property = (BeanProperty<E, U>) beanModel.get(attribute.getName());
         Class<U> rawType = (Class<U>) property.getType().getRawType();
-        OneToOne oneToOne = property.getAnnotation(OneToOne.class);
-        OneToOneJoin<E, U> join = new OneToOneJoin<>(rawType, type, property);
-        join.setParent(this);
-        joins.add(join);
-        return join;
+        for (Annotation annotation : property.getAnnotations()) {
+            switch (annotation) {
+                case OneToOne oneToOne -> {
+                    Join<E, U> join;
+                    if (Strings.isNullOrEmpty(oneToOne.mappedBy())) {
+                        join = new OneToOneJoin<>(rawType, type, property);
+                    } else {
+                        BeanModel<U> destinationModel = BeanIntrospector.create(rawType);
+                        BeanProperty<U, ?> destinationProperty = destinationModel.get(oneToOne.mappedBy());
+                        join = new OneToOneMappedJoin<>(rawType, type, destinationProperty);
+                    }
+                    join.setParent(this);
+                    joins.add(join);
+                    return join;
+                }
+                case ManyToOne manyToOne -> {
+                    ManyToOneJoin<E, U> join = new ManyToOneJoin<>(rawType, type, property);
+                    join.setParent(this);
+                    joins.add(join);
+                    return join;
+                }
+                default -> {
+                    // No Op
+                }
+            }
+        }
+
+        throw new RuntimeException("Not implemented yet");
+    }
+
+    public <U> AbstractJoin<E, U> join(PluralAttribute<E, ?, U> attribute) {
+        return join(attribute, Join.Type.STANDARD);
     }
 
     public <U> AbstractJoin<E, U> join(PluralAttribute<E, ?, U> attribute, Join.Type type) {
@@ -75,21 +107,32 @@ public class From<E> extends AbstractSelection<E> {
         Class<?> rawType = property.getType().getRawType();
 
         if (Collection.class.isAssignableFrom(rawType)) {
+            Class<U> collectionType = (Class<U>) property.getType().resolveType(Collection.class.getTypeParameters()[0]).getRawType();
+
             for (Annotation annotation : property.getAnnotations()) {
                 switch (annotation) {
                     case OneToMany oneToMany -> {
-                        Class<U> collectionType = (Class<U>) property.getType().resolveType(Collection.class.getTypeParameters()[0]).getRawType();
-                        Join<E, U> join = new OneToManyJoin<>(collectionType, type, property, oneToMany.mappedBy());
+                        Join<E, U> join;
+                        if (Strings.isNullOrEmpty(oneToMany.mappedBy())) {
+                            join = new OneToManyJoin<>(collectionType, type, property);
+                        } else {
+                            BeanModel<U> destinationModel = BeanIntrospector.create(collectionType);
+                            BeanProperty<U, ?> destinationProperty = destinationModel.get(oneToMany.mappedBy());
+                            join = new OneToManyMappedJoin<>(collectionType, type, destinationProperty);
+                        }
                         join.setParent(this);
                         joins.add(join);
                         return join;
                     }
-                    case ManyToOne manyToOne -> {
-                        throw new RuntimeException("Not implemented yet");
-                    }
                     case ManyToMany manyToMany -> {
-                        Class<U> collectionType = (Class<U>) property.getType().resolveType(Collection.class.getTypeParameters()[0]).getRawType();
-                        Join<E, U> join = new ManyToManyJoin<>(collectionType, type, property, manyToMany.mappedBy());
+                        Join<E, U> join;
+                        if (Strings.isNullOrEmpty(manyToMany.mappedBy())) {
+                            join = new ManyToManyJoin<>(collectionType, type, property);
+                        } else {
+                            BeanModel<U> destinationModel = BeanIntrospector.create(collectionType);
+                            BeanProperty<U, ?> destinationProperty = destinationModel.get(manyToMany.mappedBy());
+                            join = new ManyToManyMappedJoin<>(collectionType, type, destinationProperty, property);
+                        }
                         join.setParent(this);
                         joins.add(join);
                         return join;
