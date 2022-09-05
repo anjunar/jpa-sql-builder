@@ -695,4 +695,69 @@ public class Tests {
         Assertions.assertEquals(result, execute);
     }
 
+    @Test
+    public void testDataLength() {
+        Query<Person> query = query(Person.class);
+        From<Person> from = query.from(Person.class);
+
+        query.select(from).where(
+                greaterThan(dataLength(from.get(Person_.firstName)), variable(10))
+        );
+
+        String execute = execute(query);
+
+        String result = "select person.* from Person person where dataLength(person.firstName) > :v1";
+
+        Assertions.assertEquals(result, execute);
+    }
+
+    @Test
+    public void testDifference() {
+        Query<Person> query = query(Person.class);
+        From<Person> from = query.from(Person.class);
+
+        query.select(from).where(
+                greaterThan(difference(from.get(Person_.firstName), from.get(Person_.lastName)), variable(2))
+        );
+
+        String execute = execute(query);
+
+        String result = "select person.* from Person person where difference(person.firstName, person.lastName) > :v1";
+
+        Assertions.assertEquals(result, execute);
+    }
+
+    @Test
+    public void testFormat() {
+        Query<Person> query = query(Person.class);
+        From<Person> from = query.from(Person.class);
+
+        query.select(from).where(
+                equal(format(from.get(Person_.id), variable("###-###-##")), variable("123-456-78"))
+        );
+
+        String execute = execute(query);
+
+        String result = "select person.* from Person person where format(person.id, :v1) = :v2";
+
+        Assertions.assertEquals(result, execute);
+    }
+
+
+    @Test
+    public void testLeft() {
+        Query<Person> query = query(Person.class);
+        From<Person> from = query.from(Person.class);
+
+        query.select(from).where(
+                equal(left(from.get(Person_.firstName), variable(3)), variable("Pat"))
+        );
+
+        String execute = execute(query);
+
+        String result = "select person.* from Person person where left(person.firstName, :v1) = :v2";
+
+        Assertions.assertEquals(result, execute);
+    }
+
 }

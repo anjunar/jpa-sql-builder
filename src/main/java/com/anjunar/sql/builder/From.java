@@ -147,8 +147,8 @@ public class From<E> extends AbstractSelection<E> {
         throw new RuntimeException("Not Implemented yet");
     }
 
-    public <X,Y> Path<Y> get(SingularAttribute<X, Y> attribute) {
-        return new Path<Y>(attribute, (From<Y>) this);
+    public <Y> Path<Y> get(SingularAttribute<E, Y> attribute) {
+        return new Path<>(attribute, (From<Y>) this);
     }
 
     @Override

@@ -15,10 +15,7 @@ import com.anjunar.sql.builder.predicates.CompoundPredicate;
 import com.anjunar.sql.builder.predicates.logical.*;
 import jakarta.persistence.metamodel.SingularAttribute;
 
-import javax.xml.crypto.Data;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class SqlBuilder {
 
@@ -39,12 +36,12 @@ public class SqlBuilder {
     }
 
     public static <E> Variable<E> variable(E value) {
-        return new Variable<E>(value);
+        return new Variable<>(value);
     }
 
 
 //////////////////////////////////////////////////Aggregators///////////////////////////////////////////////////////////
-
+    
     public static <E extends Number, X> AbstractSelection<E> avg(Expression<X> path) {
         return new AvgSelection<>(path);
     }
@@ -108,8 +105,24 @@ public class SqlBuilder {
         return new ConcatWsFunction(separator, Arrays.asList(values));
     }
 
-    public static DataLength dataLength(Expression<String> value) {
-        return new DataLength(value);
+    public static DataLengthFunction dataLength(Expression<String> value) {
+        return new DataLengthFunction(value);
+    }
+
+    public static DifferenceFunction difference(Expression<String> lhs, Expression<String> rhs) {
+        return new DifferenceFunction(lhs, rhs);
+    }
+
+    public static FormatFunction format(Expression<? extends Comparable<?>> value, Expression<String> format, Expression<String> culture) {
+        return new FormatFunction(value, format, culture);
+    }
+
+    public static FormatFunction format(Expression<? extends Comparable<?>> value, Expression<String> format) {
+        return new FormatFunction(value, format, null);
+    }
+
+    public static LeftFunction left(Expression<String> value, Expression<Integer> chars) {
+        return new LeftFunction(value, chars);
     }
 
 //////////////////////////////////////////////Postgres Joins////////////////////////////////////////////////////////////
