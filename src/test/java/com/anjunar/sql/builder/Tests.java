@@ -86,11 +86,11 @@ public class Tests {
 
         query.select(count(from.get(Address_.country)))
                 .groupBy(from.get(Address_.country))
-                .having(greaterThan(count(from.get(Address_.country)), 5));
+                .having(greaterThan(count(from.get(Address_.country)), variable(5)));
 
         String execute = execute(query);
 
-        String result = "select count(address.country) from Address address group by address.country having count(address.country) > :1";
+        String result = "select count(address.country) from Address address group by address.country having count(address.country) > :v1";
         Assertions.assertEquals(result, execute);
     }
 
@@ -102,12 +102,12 @@ public class Tests {
         JsonJoin<Category, Translations> join = from.jsonJoin(jsonArray(Category_.name, "translations"));
 
         query.select(from).where(
-                jsonEqual(join, "text", "Everybody")
+                jsonEqual(join, "text", variable("Everybody"))
         );
 
         String execute = execute(query);
 
-        String result = "select category.* from Category category, json_array_elements(category.name -> 'translations') translations where translations ->> 'text' = 'Everybody'";
+        String result = "select category.* from Category category, json_array_elements(category.name -> 'translations') translations where translations ->> 'text' = :v1";
 
         Assertions.assertEquals(result, execute);
 
@@ -249,15 +249,15 @@ public class Tests {
 
         query.select(from).where(
                 and(
-                        levensthein(from.get(Person_.firstName), "Patrik"),
-                        like(from.get(Person_.firstName), "Patrik%")
+                        levensthein(from.get(Person_.firstName), variable("Patrik")),
+                        like(from.get(Person_.firstName), variable("test"))
                 )
 
         );
 
         String execute = execute(query);
 
-        String result = "select person.* from Person person where levensthein(person.firstName, :1) and person.firstName like :2";
+        String result = "select person.* from Person person where levensthein(person.firstName, :v1) and person.firstName like :v2";
 
         Assertions.assertEquals(result, execute);
 
@@ -271,12 +271,12 @@ public class Tests {
         AbstractJoin<Person, Address> join = from.join(Person_.addresses, Join.Type.NATURAL);
 
         query.select(from).where(
-                like(join.get(Address_.street), "Strasse")
+                like(join.get(Address_.street), variable("test"))
         );
 
         String execute = execute(query);
 
-        String result = "select person.* from Person person natural join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :1";
+        String result = "select person.* from Person person natural join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -289,12 +289,12 @@ public class Tests {
         AbstractJoin<Person, Address> join = from.join(Person_.addresses, Join.Type.LEFT);
 
         query.select(from).where(
-                like(join.get(Address_.street), "Strasse")
+                like(join.get(Address_.street), variable("test"))
         );
 
         String execute = execute(query);
 
-        String result = "select person.* from Person person left join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :1";
+        String result = "select person.* from Person person left join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -307,12 +307,12 @@ public class Tests {
         AbstractJoin<Person, Address> join = from.join(Person_.addresses, Join.Type.RIGHT);
 
         query.select(from).where(
-                like(join.get(Address_.street), "Strasse")
+                like(join.get(Address_.street), variable("test"))
         );
 
         String execute = execute(query);
 
-        String result = "select person.* from Person person right join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :1";
+        String result = "select person.* from Person person right join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -325,12 +325,12 @@ public class Tests {
         AbstractJoin<Person, Address> join = from.join(Person_.addresses, Join.Type.INNER);
 
         query.select(from).where(
-                like(join.get(Address_.street), "Strasse")
+                like(join.get(Address_.street), variable("test"))
         );
 
         String execute = execute(query);
 
-        String result = "select person.* from Person person inner join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :1";
+        String result = "select person.* from Person person inner join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -343,12 +343,12 @@ public class Tests {
         AbstractJoin<Person, Address> join = from.join(Person_.addresses, Join.Type.FULL);
 
         query.select(from).where(
-                like(join.get(Address_.street), "Strasse")
+                like(join.get(Address_.street), variable("test"))
         );
 
         String execute = execute(query);
 
-        String result = "select person.* from Person person full join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :1";
+        String result = "select person.* from Person person full join Person_Address person_address on person.id = person_address.person_id join Address address on address.id = person_address.addresses_id where address.street like :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -375,14 +375,14 @@ public class Tests {
         query.select(from).where(
                 between(
                         from.get(Person_.birthdate),
-                        LocalDate.of(1980, 1, 1),
-                        LocalDate.of(1981, 1, 1)
+                        variable(LocalDate.of(1980, 1, 1)),
+                        variable(LocalDate.of(1981, 1, 1))
                 )
         );
 
         String execute = execute(query);
 
-        String result = "select person.* from Person person where person.birthdate between :1 and :2";
+        String result = "select person.* from Person person where person.birthdate between :v1 and :v2";
 
         Assertions.assertEquals(result, execute);
     }
@@ -424,14 +424,14 @@ public class Tests {
                 any(
                         from.get(Product_.id),
                         subQuery.select(subFrom.get(OrderDetail_.id)).where(
-                                equal(subFrom.get(OrderDetail_.quantity), 10)
+                                equal(subFrom.get(OrderDetail_.quantity), variable(10))
                         )
                 )
         );
 
         String execute = execute(query);
 
-        String result = "select product.* from Product product where product.id = any (select orderdetail.id from OrderDetail orderdetail where orderdetail.quantity = :1)";
+        String result = "select product.* from Product product where product.id = any (select orderdetail.id from OrderDetail orderdetail where orderdetail.quantity = :v1)";
 
         Assertions.assertEquals(result, execute);
 
@@ -449,14 +449,14 @@ public class Tests {
                 all(
                         from.get(Product_.id),
                         subQuery.select(subFrom.get(OrderDetail_.id)).where(
-                                equal(subFrom.get(OrderDetail_.quantity), 10)
+                                equal(subFrom.get(OrderDetail_.quantity), variable(10))
                         )
                 )
         );
 
         String execute = execute(query);
 
-        String result = "select product.* from Product product where product.id = all (select orderdetail.id from OrderDetail orderdetail where orderdetail.quantity = :1)";
+        String result = "select product.* from Product product where product.id = all (select orderdetail.id from OrderDetail orderdetail where orderdetail.quantity = :v1)";
 
         Assertions.assertEquals(result, execute);
 
@@ -468,12 +468,12 @@ public class Tests {
         From<Product> from = query.from(Product.class);
 
         query.select(from).where(
-                equal(coalesce(from.get(Product_.name), ""), "test")
+                equal(coalesce(from.get(Product_.name), variable("")), variable("test"))
         );
 
         String execute = execute(query);
 
-        String result = "select product.* from Product product where coalesce(product.name, :1) = :2";
+        String result = "select product.* from Product product where coalesce(product.name, :v1) = :v2";
 
         Assertions.assertEquals(result, execute);
     }
@@ -484,12 +484,12 @@ public class Tests {
         From<Product> from = query.from(Product.class);
 
         query.select(from).where(
-                equal(ascii(from.get(Product_.name)), "A")
+                equal(ascii(from.get(Product_.name)), variable("A"))
         );
 
         String execute = execute(query);
 
-        String result = "select product.* from Product product where ASCII(product.name) = :1";
+        String result = "select product.* from Product product where ASCII(product.name) = :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -500,12 +500,12 @@ public class Tests {
         From<Product> from = query.from(Product.class);
 
         query.select(from).where(
-                add(from.get(Product_.price), 3)
+                add(from.get(Product_.price), variable(3))
         );
 
         String execute = execute(query);
 
-        String result = "select product.* from Product product where product.price + :1";
+        String result = "select product.* from Product product where product.price + :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -516,12 +516,12 @@ public class Tests {
         From<Product> from = query.from(Product.class);
 
         query.select(from).where(
-                bitwiseAnd(from.get(Product_.price), 3)
+                bitwiseAnd(from.get(Product_.price), variable(3))
         );
 
         String execute = execute(query);
 
-        String result = "select product.* from Product product where product.price & :1";
+        String result = "select product.* from Product product where product.price & :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -532,11 +532,11 @@ public class Tests {
         From<Product> from = query.from(Product.class);
 
         query.select(from).where(
-                addEquals(from.get(Product_.price), 3)
+                addEquals(from.get(Product_.price), variable(3))
         );
 
         String execute = execute(query);
-        String result = "select product.* from Product product where product.price += :1";
+        String result = "select product.* from Product product where product.price += :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -547,11 +547,11 @@ public class Tests {
         From<Product> from = query.from(Product.class);
 
         query.select(from).where(
-                like(not(from.get(Product_.name)), "%test")
+                like(not(from.get(Product_.name)), variable("test"))
         );
 
         String execute = execute(query);
-        String result = "select product.* from Product product where product.name not like :1";
+        String result = "select product.* from Product product where product.name not like :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -563,12 +563,12 @@ public class Tests {
 
         AbstractJoin<Product, Supplier> join = from.join(Product_.supplier, Join.Type.LEFT);
         query.select(from).where(
-                like(join.get(Supplier_.name), "test")
+                like(join.get(Supplier_.name), variable("test"))
         );
 
         String execute = execute(query);
 
-        String result = "select product.* from Product product left join Supplier supplier on supplier.id = product.supplier_id where supplier.name like :1";
+        String result = "select product.* from Product product left join Supplier supplier on supplier.id = product.supplier_id where supplier.name like :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -581,12 +581,12 @@ public class Tests {
         AbstractJoin<OrderDetail, Product> join = from.join(OrderDetail_.product);
 
         query.select(from).where(
-                like(join.get(Product_.name), "test")
+                like(join.get(Product_.name), variable("test"))
         );
 
         String execute = execute(query);
 
-        String result = "select orderdetail.* from OrderDetail orderdetail join Product product on product.id = orderdetail.product_id where product.name like :1";
+        String result = "select orderdetail.* from OrderDetail orderdetail join Product product on product.id = orderdetail.product_id where product.name like :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -599,12 +599,12 @@ public class Tests {
         AbstractJoin<Product, Text> join = from.join(Product_.texts);
 
         query.select(from).where(
-                like(join.get(Text_.data), "test")
+                like(join.get(Text_.data), variable("test"))
         );
 
         String execute = execute(query);
 
-        String result = "select product.* from Product product join Product_Text product_text on product.id = product_text.product_id join Text text on text.id = product_text.texts_id where text.data like :1";
+        String result = "select product.* from Product product join Product_Text product_text on product.id = product_text.product_id join Text text on text.id = product_text.texts_id where text.data like :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -617,12 +617,12 @@ public class Tests {
         AbstractJoin<Supplier, Product> join = from.join(Supplier_.product);
 
         query.select(from).where(
-                like(join.get(Product_.name), "test")
+                like(join.get(Product_.name), variable("test"))
         );
 
         String execute = execute(query);
 
-        String result = "select supplier.* from Supplier supplier join Product product on supplier.id = product.supplier_id where product.name like :1";
+        String result = "select supplier.* from Supplier supplier join Product product on supplier.id = product.supplier_id where product.name like :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -635,12 +635,12 @@ public class Tests {
         AbstractJoin<Person, Email> join = from.join(Person_.emails);
 
         query.select(from).where(
-                like(join.get(Email_.email), "test")
+                like(join.get(Email_.email), variable("test"))
         );
 
         String execute = execute(query);
 
-        String result = "select person.* from Person person join Email email on person.id = email.PERSON_ID where email.email like :1";
+        String result = "select person.* from Person person join Email email on person.id = email.PERSON_ID where email.email like :v1";
 
         Assertions.assertEquals(result, execute);
     }
@@ -653,13 +653,46 @@ public class Tests {
         AbstractJoin<Text, Product> join = from.join(Text_.products);
 
         query.select(from).where(
-                like(join.get(Product_.name), "test")
+                like(join.get(Product_.name), variable("test"))
         );
 
         String execute = execute(query);
 
-        String result = "select text.* from Text text join Text_Product text_product on text.id = text_product.texts_id join Product product on product.id = text_product.products_id where product.name like :1";
+        String result = "select text.* from Text text join Text_Product text_product on text.id = text_product.texts_id join Product product on product.id = text_product.products_id where product.name like :v1";
 
         Assertions.assertEquals(result, execute);
     }
+
+    @Test
+    public void testCharAndConcat() {
+        Query<Person> query = query(Person.class);
+        From<Person> from = query.from(Person.class);
+
+        query.select(from).where(
+                like(concat(from.get(Person_.firstName), aChar(variable(11)), variable("test")), variable("test"))
+        );
+
+        String execute = execute(query);
+
+        String result = "select person.* from Person person where person.firstName + char(:v1) + :v2 like :v3";
+
+        Assertions.assertEquals(result, execute);
+    }
+
+    @Test
+    public void testConcatWS() {
+        Query<Person> query = query(Person.class);
+        From<Person> from = query.from(Person.class);
+
+        query.select(from).where(
+                like(concatWs(".", from.get(Person_.firstName), aChar(variable(11))), variable("test"))
+        );
+
+        String execute = execute(query);
+
+        String result = "select person.* from Person person where concat_ws('.', person.firstName, char(:v1)) like :v2";
+
+        Assertions.assertEquals(result, execute);
+    }
+
 }

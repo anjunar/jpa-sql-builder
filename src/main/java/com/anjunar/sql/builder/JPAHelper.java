@@ -4,6 +4,7 @@ import com.anjunar.introspector.bean.BeanIntrospector;
 import com.anjunar.introspector.bean.BeanModel;
 import com.anjunar.introspector.bean.BeanProperty;
 import com.anjunar.sql.builder.joins.Join;
+import jakarta.enterprise.inject.spi.Bean;
 import jakarta.persistence.*;
 
 public class JPAHelper {
@@ -34,6 +35,32 @@ public class JPAHelper {
             }
         }
         throw new RuntimeException("No ID Annotation found on: " + model);
+    }
+
+    public static String referencedColumnName(Class<?> aClass, BeanProperty<?,?> property) {
+        JoinColumn joinColumn = property.getAnnotation(JoinColumn.class);
+        if (joinColumn == null) {
+            return id(aClass);
+        }
+        return joinColumn.referencedColumnName();
+    }
+
+    public static String joinTableReferencedColumnName(Class<?> aClass, BeanProperty<?,?> property) {
+        JoinTable joinTable = property.getAnnotation(JoinTable.class);
+        if (joinTable == null) {
+            return id(aClass);
+        }
+        JoinColumn joinColumn = joinTable.joinColumns()[0];
+        return joinColumn.referencedColumnName();
+    }
+
+    public static String joinTableInverseReferencedColumnName(Class<?> aClass, BeanProperty<?,?> property) {
+        JoinTable joinTable = property.getAnnotation(JoinTable.class);
+        if (joinTable == null) {
+            return id(aClass);
+        }
+        JoinColumn joinColumn = joinTable.inverseJoinColumns()[0];
+        return joinColumn.referencedColumnName();
     }
 
     public static String joinTableName(BeanProperty<?, ?> property, From<?> from, Join<?, ?> join) {

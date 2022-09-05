@@ -6,10 +6,10 @@ import com.anjunar.sql.builder.AbstractPredicate;
 
 public class BetweenPredicate<E> extends AbstractPredicate<E> {
     private final Expression<E> path;
-    private final Comparable<?> from;
-    private final Comparable<?> to;
+    private final Expression<Comparable<?>> from;
+    private final Expression<Comparable<?>> to;
 
-    public BetweenPredicate(Expression<E> path, Comparable<?> from, Comparable<?> to) {
+    public BetweenPredicate(Expression<E> path, Expression<Comparable<?>> from, Expression<Comparable<?>> to) {
         this.path = path;
         this.from = from;
         this.to = to;
@@ -17,20 +17,12 @@ public class BetweenPredicate<E> extends AbstractPredicate<E> {
 
     @Override
     public String execute(Context context) {
-        Integer toIndex = context.next();
-        context.mappings().put(toIndex, from);
-
-        Integer fromIndex = context.next();
-        context.mappings().put(fromIndex, from);
-
         return new StringBuilder()
                 .append(path.execute(context))
                 .append(" between ")
-                .append(":")
-                .append(toIndex)
+                .append(from.execute(context))
                 .append(" and ")
-                .append(":")
-                .append(fromIndex)
+                .append(from.execute(context))
                 .toString();
     }
 }

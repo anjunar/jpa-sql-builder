@@ -6,8 +6,7 @@ import com.anjunar.sql.builder.functions.advanced.IsNotNullFunction;
 import com.anjunar.sql.builder.functions.advanced.IsNullFunction;
 import com.anjunar.sql.builder.functions.postgres.JsonEqualFunction;
 import com.anjunar.sql.builder.functions.postgres.LevenstheinFunction;
-import com.anjunar.sql.builder.functions.string.ASCIIFunction;
-import com.anjunar.sql.builder.functions.string.CharFunction;
+import com.anjunar.sql.builder.functions.string.*;
 import com.anjunar.sql.builder.joins.postgres.JsonJoin;
 import com.anjunar.sql.builder.predicates.ArithmeticPredicate;
 import com.anjunar.sql.builder.predicates.BitwisePredicate;
@@ -15,6 +14,11 @@ import com.anjunar.sql.builder.predicates.ComparisonPredicate;
 import com.anjunar.sql.builder.predicates.CompoundPredicate;
 import com.anjunar.sql.builder.predicates.logical.*;
 import jakarta.persistence.metamodel.SingularAttribute;
+
+import javax.xml.crypto.Data;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class SqlBuilder {
 
@@ -32,6 +36,10 @@ public class SqlBuilder {
 
     public static Order desc(Expression<?> path) {
         return new Order(path, Order.Type.DESC);
+    }
+
+    public static <E> Variable<E> variable(E value) {
+        return new Variable<E>(value);
     }
 
 
@@ -59,7 +67,7 @@ public class SqlBuilder {
 
 //////////////////////////////////////////////////Advanced Functions////////////////////////////////////////////////////
 
-    public static <E> CoalesceFunction<E> coalesce(Expression<E> path, Object value) {
+    public static <E> CoalesceFunction<E> coalesce(Expression<E> path, Expression<E> value) {
         return new CoalesceFunction<>(value, path);
     }
 
@@ -74,11 +82,11 @@ public class SqlBuilder {
 
 ////////////////////////////////////////////////Postgres Functions//////////////////////////////////////////////////////
 
-    public static <E, U> JsonEqualFunction<E, U> jsonEqual(JsonJoin<E, U> join, String property, String value) {
+    public static <E, U> JsonEqualFunction<E, U> jsonEqual(JsonJoin<E, U> join, String property, Expression<String> value) {
         return new JsonEqualFunction<>(join, property, value);
     }
 
-    public static LevenstheinFunction levensthein(Expression<String> attribute, String value) {
+    public static LevenstheinFunction levensthein(Expression<String> attribute, Expression<String> value) {
         return new LevenstheinFunction(value, attribute);
     }
 
@@ -88,8 +96,20 @@ public class SqlBuilder {
         return new ASCIIFunction(attribute);
     }
 
-    public static CharFunction aChar(Integer value) {
+    public static CharFunction aChar(Expression<Integer> value) {
         return new CharFunction(value);
+    }
+
+    public static ConcatFunction concat(Expression<String>... values) {
+        return new ConcatFunction(Arrays.asList(values));
+    }
+
+    public static ConcatWsFunction concatWs(String separator, Expression<String>... values) {
+        return new ConcatWsFunction(separator, Arrays.asList(values));
+    }
+
+    public static DataLength dataLength(Expression<String> value) {
+        return new DataLength(value);
     }
 
 //////////////////////////////////////////////Postgres Joins////////////////////////////////////////////////////////////
@@ -104,79 +124,31 @@ public class SqlBuilder {
         return new ComparisonPredicate<>(lhs, rhs, ComparisonPredicate.Type.EQUAL);
     }
 
-    public static <E, U> ComparisonPredicate<E, U> equal(Expression<E> lhs, Object value) {
-        Expression<U> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new ComparisonPredicate<>(lhs, expression, ComparisonPredicate.Type.EQUAL);
-    }
 
     public static <E, U> ComparisonPredicate<E, U> greaterThan(Expression<E> lhs, Expression<U> rhs) {
         return new ComparisonPredicate<>(lhs, rhs, ComparisonPredicate.Type.GREATER_THAN);
     }
 
-    public static <E,U> ComparisonPredicate<E,U> greaterThan(Expression<E> lhs, Object value) {
-        Expression<U> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new ComparisonPredicate<>(lhs, expression, ComparisonPredicate.Type.GREATER_THAN);
-    }
 
     public static <E, U> ComparisonPredicate<E, U> lessThan(Expression<E> lhs, Expression<U> rhs) {
         return new ComparisonPredicate<>(lhs, rhs, ComparisonPredicate.Type.LESS_THAN);
     }
 
-    public static <E, U> ComparisonPredicate<E, U> lessThan(Expression<E> lhs, Object value) {
-        Expression<U> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new ComparisonPredicate<>(lhs, expression, ComparisonPredicate.Type.LESS_THAN);
-    }
 
     public static <E, U> ComparisonPredicate<E, U> greaterThanOrEqual(Expression<E> lhs, Expression<U> rhs) {
         return new ComparisonPredicate<>(lhs, rhs, ComparisonPredicate.Type.GREATER_THAN_OR_EQUAL);
     }
 
-    public static <E, U> ComparisonPredicate<E, U> greaterThanOrEqual(Expression<E> lhs, Object value) {
-        Expression<U> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new ComparisonPredicate<>(lhs, expression, ComparisonPredicate.Type.GREATER_THAN_OR_EQUAL);
-    }
 
     public static <E, U> ComparisonPredicate<E, U> lessThanOrEqual(Expression<E> lhs, Expression<U> rhs) {
         return new ComparisonPredicate<>(lhs, rhs, ComparisonPredicate.Type.LESS_THAN_OR_EQUAL);
     }
 
-    public static <E, U> ComparisonPredicate<E, U> lessThanOrEqual(Expression<E> lhs, Object value) {
-        Expression<U> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new ComparisonPredicate<>(lhs, expression, ComparisonPredicate.Type.LESS_THAN_OR_EQUAL);
-    }
 
     public static <E, U> ComparisonPredicate<E, U> notEqualTo(Expression<E> lhs, Expression<U> rhs) {
         return new ComparisonPredicate<>(lhs, rhs, ComparisonPredicate.Type.NOT_EQUAL_TO);
     }
 
-    public static <E, U> ComparisonPredicate<E, U> notEqualTo(Expression<E> lhs, Object value) {
-        Expression<U> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new ComparisonPredicate<>(lhs, expression, ComparisonPredicate.Type.NOT_EQUAL_TO);
-    }
 ////////////////////////////////////////////////////////Arithmetic//////////////////////////////////////////////////////
 
 
@@ -184,106 +156,42 @@ public class SqlBuilder {
         return new ArithmeticPredicate(lhs, rhs, ArithmeticPredicate.Type.ADD);
     }
 
-    public static ArithmeticPredicate add(Expression<? extends Number> lhs, Number value) {
-        Expression<? extends Number> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new ArithmeticPredicate(lhs, expression, ArithmeticPredicate.Type.ADD);
-    }
 
     public static ArithmeticPredicate subtract(Expression<? extends Number> lhs, Expression<? extends Number> rhs) {
         return new ArithmeticPredicate(lhs, rhs, ArithmeticPredicate.Type.SUBTRACT);
     }
 
-    public static ArithmeticPredicate subtract(Expression<? extends Number> lhs, Number value) {
-        Expression<? extends Number> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new ArithmeticPredicate(lhs, expression, ArithmeticPredicate.Type.SUBTRACT);
-    }
 
     public static ArithmeticPredicate divide(Expression<? extends Number> lhs, Expression<? extends Number> rhs) {
         return new ArithmeticPredicate(lhs, rhs, ArithmeticPredicate.Type.DIVIDE);
     }
 
-    public static ArithmeticPredicate divide(Expression<? extends Number> lhs, Number value) {
-        Expression<? extends Number> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new ArithmeticPredicate(lhs, expression, ArithmeticPredicate.Type.DIVIDE);
-    }
 
     public static ArithmeticPredicate multiply(Expression<? extends Number> lhs, Expression<? extends Number> rhs) {
         return new ArithmeticPredicate(lhs, rhs, ArithmeticPredicate.Type.MULTIPLY);
     }
 
-    public static ArithmeticPredicate multipy(Expression<? extends Number> lhs, Number value) {
-        Expression<? extends Number> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new ArithmeticPredicate(lhs, expression, ArithmeticPredicate.Type.MULTIPLY);
-    }
 
     public static ArithmeticPredicate modulo(Expression<? extends Number> lhs, Expression<? extends Number> rhs) {
         return new ArithmeticPredicate(lhs, rhs, ArithmeticPredicate.Type.MODULO);
     }
 
-    public static ArithmeticPredicate modulo(Expression<? extends Number> lhs, Number value) {
-        Expression<? extends Number> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new ArithmeticPredicate(lhs, expression, ArithmeticPredicate.Type.MODULO);
-    }
 ///////////////////////////////////////////////////////Bitwise//////////////////////////////////////////////////////////
 
     public static BitwisePredicate bitwiseAnd(Expression<? extends Comparable<?>> lhs, Expression<? extends Comparable<?>> rhs) {
         return new BitwisePredicate(lhs, rhs, BitwisePredicate.Type.BITWISE_AND);
     }
 
-    public static BitwisePredicate bitwiseAnd(Expression<? extends Comparable<?>> lhs, Number value) {
-        Expression<? extends Comparable<?>> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new BitwisePredicate(lhs, expression, BitwisePredicate.Type.BITWISE_AND);
-    }
 
     public static BitwisePredicate bitwiseOr(Expression<? extends Comparable<?>> lhs, Expression<? extends Comparable<?>> rhs) {
         return new BitwisePredicate(lhs, rhs, BitwisePredicate.Type.BITWISE_OR);
     }
 
-    public static BitwisePredicate bitwiseOr(Expression<? extends Comparable<?>> lhs, Number value) {
-        Expression<? extends Comparable<?>> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new BitwisePredicate(lhs, expression, BitwisePredicate.Type.BITWISE_OR);
-    }
 
     public static BitwisePredicate bitwiseExclusiveOr(Expression<? extends Comparable<?>> lhs, Expression<? extends Comparable<?>> rhs) {
         return new BitwisePredicate(lhs, rhs, BitwisePredicate.Type.BITWISE_EXCLUSIVE_OR);
     }
 
-    public static BitwisePredicate bitwiseExclusiveOr(Expression<? extends Comparable<?>> lhs, Number value) {
-        Expression<? extends Comparable<?>> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new BitwisePredicate(lhs, expression, BitwisePredicate.Type.BITWISE_EXCLUSIVE_OR);
-    }
 //////////////////////////////////////////////////////Compound//////////////////////////////////////////////////////////
 
 
@@ -291,105 +199,38 @@ public class SqlBuilder {
         return new CompoundPredicate(lhs, rhs, CompoundPredicate.Type.ADD_EQUALS);
     }
 
-    public static CompoundPredicate addEquals(Expression<? extends Comparable<?>> lhs, Number value) {
-        Expression<? extends Comparable<?>> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new CompoundPredicate(lhs, expression, CompoundPredicate.Type.ADD_EQUALS);
-    }
-
     public static CompoundPredicate subtractEquals(Expression<? extends Comparable<?>> lhs, Expression<? extends Comparable<?>> rhs) {
         return new CompoundPredicate(lhs, rhs, CompoundPredicate.Type.SUBTRACT_EQUALS);
     }
 
-    public static CompoundPredicate subtractEquals(Expression<? extends Comparable<?>> lhs, Number value) {
-        Expression<? extends Comparable<?>> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new CompoundPredicate(lhs, expression, CompoundPredicate.Type.SUBTRACT_EQUALS);
-    }
 
     public static CompoundPredicate multiplyEquals(Expression<? extends Comparable<?>> lhs, Expression<? extends Comparable<?>> rhs) {
         return new CompoundPredicate(lhs, rhs, CompoundPredicate.Type.MULTIPLY_EQUALS);
     }
 
-    public static CompoundPredicate multiplyEquals(Expression<? extends Comparable<?>> lhs, Number value) {
-        Expression<? extends Comparable<?>> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new CompoundPredicate(lhs, expression, CompoundPredicate.Type.MULTIPLY_EQUALS);
-    }
 
     public static CompoundPredicate divideEquals(Expression<? extends Comparable<?>> lhs, Expression<? extends Comparable<?>> rhs) {
         return new CompoundPredicate(lhs, rhs, CompoundPredicate.Type.DIVIDE_EQUALS);
     }
 
-    public static CompoundPredicate divideEquals(Expression<? extends Comparable<?>> lhs, Number value) {
-        Expression<? extends Comparable<?>> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new CompoundPredicate(lhs, expression, CompoundPredicate.Type.DIVIDE_EQUALS);
-    }
 
     public static CompoundPredicate moduloEquals(Expression<? extends Comparable<?>> lhs, Expression<? extends Comparable<?>> rhs) {
         return new CompoundPredicate(lhs, rhs, CompoundPredicate.Type.MODULO_EQUALS);
-    }
-
-    public static CompoundPredicate moduloEquals(Expression<? extends Comparable<?>> lhs, Number value) {
-        Expression<? extends Comparable<?>> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new CompoundPredicate(lhs, expression, CompoundPredicate.Type.MODULO_EQUALS);
     }
 
     public static CompoundPredicate bitwiseAndEquals(Expression<? extends Comparable<?>> lhs, Expression<? extends Comparable<?>> rhs) {
         return new CompoundPredicate(lhs, rhs, CompoundPredicate.Type.BITWISE_AND_EQUALS);
     }
 
-    public static CompoundPredicate bitwiseAndEquals(Expression<? extends Comparable<?>> lhs, Number value) {
-        Expression<? extends Comparable<?>> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new CompoundPredicate(lhs, expression, CompoundPredicate.Type.BITWISE_AND_EQUALS);
-    }
 
     public static CompoundPredicate bitwiseOrEquals(Expression<? extends Comparable<?>> lhs, Expression<? extends Comparable<?>> rhs) {
         return new CompoundPredicate(lhs, rhs, CompoundPredicate.Type.BITWISE_OR_EQUALS);
-    }
-
-    public static CompoundPredicate bitwiseOrEquals(Expression<? extends Comparable<?>> lhs, Number value) {
-        Expression<? extends Comparable<?>> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new CompoundPredicate(lhs, expression, CompoundPredicate.Type.BITWISE_OR_EQUALS);
     }
 
     public static CompoundPredicate bitwiseExclusiveOrEquals(Expression<? extends Comparable<?>> lhs, Expression<? extends Comparable<?>> rhs) {
         return new CompoundPredicate(lhs, rhs, CompoundPredicate.Type.BITWISE_EXCLUSIVE_OR_EQUALS);
     }
 
-    public static CompoundPredicate bitwiseExclusiveOrEquals(Expression<? extends Comparable<?>> lhs, Number value) {
-        Expression<? extends Comparable<?>> expression = context -> {
-            Integer next = context.next();
-            context.mappings().put(next, value);
-            return ":" + next;
-        };
-        return new CompoundPredicate(lhs, expression, CompoundPredicate.Type.BITWISE_EXCLUSIVE_OR_EQUALS);
-    }
 
 /////////////////////////////////////////////////////////Logical////////////////////////////////////////////////////////
 
@@ -405,7 +246,7 @@ public class SqlBuilder {
         return new AnyPredicate<>(path, query);
     }
 
-    public static <E> BetweenPredicate<E> between(Expression<E> path, Comparable<?> from, Comparable<?> to) {
+    public static <E> BetweenPredicate<E> between(Expression<E> path, Expression<Comparable<?>> from, Expression<Comparable<?>> to) {
         return new BetweenPredicate<>(path, from, to);
     }
 
@@ -414,7 +255,7 @@ public class SqlBuilder {
     }
 
 
-    public static <E> LikePredicate<E> like(Expression<E> path, String value) {
+    public static <E> LikePredicate<E> like(Expression<E> path, Expression<String> value) {
         return new LikePredicate<>(value, path);
     }
 

@@ -6,11 +6,11 @@ import com.anjunar.sql.builder.Expression;
 
 public class CoalesceFunction<E> extends AbstractFunction<E> {
 
-    private final Object value;
+    private final Expression<E> value;
 
     private final Expression<E> path;
 
-    public CoalesceFunction(Object value, Expression<E> path) {
+    public CoalesceFunction(Expression<E> value, Expression<E> path) {
         this.value = value;
         this.path = path;
     }
@@ -21,14 +21,11 @@ public class CoalesceFunction<E> extends AbstractFunction<E> {
 
     @Override
     public String execute(Context context) {
-        Integer next = context.next();
-        context.mappings().put(next, value);
-
         return new StringBuilder()
                 .append("coalesce(")
                 .append(getPath().execute(context))
-                .append(", :")
-                .append(next)
+                .append(", ")
+                .append(value.execute(context))
                 .append(")")
                 .toString();
     }

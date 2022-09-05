@@ -6,31 +6,23 @@ import com.anjunar.sql.builder.AbstractPredicate;
 
 public class LikePredicate<E> extends AbstractPredicate<E> {
 
-    private final String value;
+    private final Expression<String> value;
 
     private final Expression<E> path;
 
-    public LikePredicate(String value, Expression<E> path) {
+    public LikePredicate(Expression<String> value, Expression<E> path) {
         this.value = value;
         this.path = path;
     }
 
     @Override
     public String execute(Context context) {
-        Integer next = context.next();
-        context.mappings().put(next, value);
-
         return new StringBuilder()
                 .append(path.execute(context))
                 .append(" ")
                 .append("like ")
-                .append(":")
-                .append(next)
+                .append(value.execute(context))
                 .toString();
-    }
-
-    public String getValue() {
-        return value;
     }
 
     public Expression<E> getPath() {
